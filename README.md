@@ -1,7 +1,7 @@
 ![kwtrp-peo/viralphyl logo](https://github.com/kwtrp-peo/logos/blob/main/kwtrp-peo-logos/kwtrp-peo-viralphyl_logo_light.png#gh-light-mode-only)
 ![kwtrp-peo/viralphyl logo](https://github.com/kwtrp-peo/logos/blob/main/kwtrp-peo-logos/kwtrp-peo-viralphyl_logo_dark.png#gh-dark-mode-only)
 
-[![Nextflow](https://img.shields.io/badge/nextflow%20DSL2-%E2%89%A523.04.0-23aa62.svg)](https://www.nextflow.io/)
+[![Nextflow](https://img.shields.io/badge/nextflow%20DSL2-%E2%89%A524.04.2-23aa62.svg)](https://www.nextflow.io/)
 [![run with conda](http://img.shields.io/badge/run%20with-conda-3EB049?labelColor=000000&logo=anaconda)](https://docs.conda.io/en/latest/)
 [![run with docker](https://img.shields.io/badge/run%20with-docker-0db7ed?labelColor=000000&logo=docker)](https://www.docker.com/)
 [![run with singularity](https://img.shields.io/badge/run%20with-singularity-1d355c.svg?labelColor=000000)](https://sylabs.io/docs/)
@@ -24,12 +24,13 @@
      workflows use the "tube map" design for that. See https://nf-co.re/docs/contributing/design_guidelines#examples for examples.   -->
 <!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline -->
 
-1. Sequencing QC ( [`toulligQC`](https://github.com/GenomiqueENS/toulligQC) )
-2. Whole genome assembly
+1. Sample sheet and metadata prep ( [`custom python script`](https://www.python.org/) )
+2. Sequencing QC ( [`toulligQC`](https://github.com/GenomiqueENS/toulligQC) )
+3. Whole genome assembly
    - Filter and aggregate demultiplexed reads from MinKNOW/Guppy ( [artic gupplylex](https://artic.readthedocs.io/en/latest/commands/) )
    - Align reads, call variants, and produce a consensus sequence ( [artic minion](https://artic.readthedocs.io/en/latest/commands/) )
    - Genome-wide and amplicon coverage QC plots ( [mosdepth](https://github.com/brentp/mosdepth/) )
-3. Phylogenetics
+4. Phylogenetics
    - Global sequence alignment ( [nextalign](https://github.com/neherlab/nextalign) )
    - Generate global phylogenetic trees using maximum likelihood method ( [iqtree](http://www.iqtree.org/) )
    - maximum likelihood dating and ancestral sequence inference( [treetime](https://github.com/neherlab/treetime) )
