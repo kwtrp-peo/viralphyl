@@ -1,8 +1,9 @@
 node_modules/
 .nextflow*
-work/
-data/
+work/*
+data/*
 results/
 .DS_Store
 testing*
 *.pyc
+test*
