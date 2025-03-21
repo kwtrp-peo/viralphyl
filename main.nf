@@ -17,7 +17,10 @@ nextflow.enable.dsl = 2
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { AMPLICON_BASED  } from './workflows/nanopore'
+include { AMPLICON_BASED  } from './workflows/ont_amplicon_based'
+include { METAGENOMICS    } from './workflows/ont_metagenomics'
+include { showHelp        } from './modules/local/help.nf'
+include { showVersion     } from './modules/local/help.nf'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -27,7 +30,27 @@ include { AMPLICON_BASED  } from './workflows/nanopore'
 
 workflow  {
 
-    AMPLICON_BASED()
+    // Display help then exit
+    if (params.help) {
+        showHelp()
+        exit(0)
+    } else if (params.version) {
+        showVersion()
+        exit(0)
+    }
+
+    // Start the pipeline by checking the --method parameter
+    switch (params.method.toLowerCase()) {
+        case 'metagenomics':    // Run the metagenomics pipeline
+            METAGENOMICS()
+            break               // Prevents fall-through to other cases
+        case 'amplicon':        // Run the amplicon-based pipeline
+            AMPLICON_BASED()
+            break 
+        default:                // Handle invalid --method values
+            log.error "ERROR: Invalid --method '${params.method}'. Choose either 'amplicon' or 'metagenomics'."
+            exit(1)  // Exit with error code 1 to indicate failure
+    }
 
 }
 
