@@ -24,12 +24,16 @@ def showHelp() {
         --method                String: one of ["amplicon", "metagenomics"] (default: 'amplicon')
 
     Output Options:
-        --outdir                Path to the directory where results will be saved (optional)
+        --outdir                Path to the directory where results will be saved (default: './Results' in the pipeline run directory)
 
-    Pipeline Running Parameters:
+    Module options
+        --skip_assembly         Boolean: If set, skips the genome assembly step (default: false)
+        --skip_qc               Boolean: If set, skips the quality check step for FASTQ files (default: true)
+
+    Assembly Step Parameters:
         --normalize             Number to reduce computational burden (default: 1000)
         --min_read_length       Number to filter out raw sequences (default: 50)
-        --max_read_length       Number to filter out raw sequences (default: 300)
+        --max_read_length       Number to filter out raw sequences (default: null, meaning no maximum length restriction)
 
     Primer Scheme Parameters (Required if --method = 'amplicon'):
         --scheme_directory      Path to the directory containing the primer scheme (required for 'amplicon')
@@ -38,7 +42,7 @@ def showHelp() {
         --medaka_model          String for Medaka model (default: 'r1041_e82_400bps_hac_v4.3.0', required for 'amplicon')
 
     Example:
-        nextflow run main.nf --fastq_dir reads/ --outdir results/
+        nextflow run main.nf --fastq_dir reads/ --outdir Results/
     """
     exit(0)
 }
