@@ -3,7 +3,8 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
- include { GENERATE_SAMPLESHEET                 } from '../modules/local/generate_samplesheet'
+ include  { GENERATE_SAMPLESHEET                 } from '../modules/local/generate_samplesheet'
+  include { ARTIC_GUPPYPLEX                      } from '../modules/local/artic_guppyplex'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -31,6 +32,15 @@ workflow AMPLICON_BASED {
         .splitCsv(header:true)
         .map { row-> tuple(row.strain_id, file(row.fastq_dir)) }
         .set { ch_samplesheet }
+
+    // ch_samplesheet.view()
+
+    // MODULE: Run artic guppyplex
+    ARTIC_GUPPYPLEX (
+        ch_samplesheet
+    )
+
+    // ARTIC_GUPPYPLEX.out.fastq_gz.view()       
 }
 
 /*

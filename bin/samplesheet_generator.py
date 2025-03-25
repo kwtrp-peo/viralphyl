@@ -145,7 +145,8 @@ def generate_samplesheet(base_dir, metadata_file, output_file, output_format, mi
                 missing_metadata_entries.append([run_name if run_name else "unknown", barcode, sample_id_value, collection_date_value] + list(optional_metadata.values()))
                 continue  
 
-            strain_id = f"{sample_id_value}|{collection_date_value}"
+            # strain_id = f"{sample_id_value}_{collection_date_value}"
+            strain_id = f"{sample_id_value}"
 
             samplesheet_data.append([sample_name, strain_id, barcode_path, sample_id_value, collection_date_value] + list(optional_metadata.values()))
         elif metadata is not None:  
