@@ -34,6 +34,7 @@ def showHelp() {
         --normalize             Number to reduce computational burden (default: 1000)
         --min_read_length       Number to filter out raw sequences (default: 50)
         --max_read_length       Number to filter out raw sequences (default: null, meaning no maximum length restriction)
+        --min_read_quality      Minimum read quality threshold (default: null, meaning no maximum read quality restriction)
 
     Primer Scheme Parameters (Required if --method = 'amplicon'):
         --scheme_directory      Path to the directory containing the primer scheme (required for 'amplicon')
@@ -42,7 +43,7 @@ def showHelp() {
         --medaka_model          String for Medaka model (default: 'r1041_e82_400bps_hac_v4.3.0', required for 'amplicon')
 
     Example:
-        nextflow run main.nf --fastq_dir reads/ --outdir Results/
+        nextflow run main.nf -profile docker,local --fastq_dir reads/ --outdir Results/ --metadata_tsv metadata.tsv
     """
     exit(0)
 }
@@ -53,4 +54,3 @@ def showVersion() {
     log.info "kwtrp/viraphyl Pipeline: ${version}\n"
     exit(0)
 }
-
