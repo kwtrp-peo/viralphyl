@@ -51,7 +51,7 @@
 3. Download the pipeline and test it on a minimal dataset with a single command:
 
    ```bash
-   nextflow run kwtrp-peo/viralphyl -profile test,YOURPROFILE --outdir <OUTDIR>
+   nextflow run kwtrp-peo/viralphyl -profile test,YOURPROFILE --outdir <outdir>
    ```
 
    Note that some form of configuration will be needed so that Nextflow knows how to fetch the required software. This is usually done in the form of a config profile (`YOURPROFILE` in the example command above). You can chain multiple config profiles in a comma-separated string.
@@ -69,7 +69,7 @@
   ```bash
    nextflow run kwtrp-peo/viralphyl \
       -profile YOURPROFILE \
-      --outdir <OUTDIR>
+      --outdir <outdir>
    ```
 
 ## Credits

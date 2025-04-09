@@ -3,47 +3,103 @@ def showHelp() {
     def version = 'git describe --tags --always'.execute().text.trim()
     
     log.info """
-    ========================================
+    ==================================================
             kwtrp/viraphyl Pipeline: ${version}
-    ========================================
+    ==================================================
+
+    test Run (Recommended before actual analysis):
+        nextflow run main.nf -profile docker,test
     
-    Usage:
-        nextflow run main.nf -profile <profile_name> --fastq_dir  <directory>
+    Standard Usage:
+        nextflow run main.nf [OPTIONS] -profile <PROFILE_NAME> --fastq_dir  <FASTQ_DIR>
 
     Help Option:
+    ------------
         --help                  Show this message
         --version               Show pipeline version
 
-    Input Options [Files/Directories]:
-        --fastq_dir             Path to the directory containing the FASTQ reads (required)
-        --multiref_fasta        Path to the file containing multi-aligned sequences (optional)
-        --metadata_tsv          Path to the file containing metadata (optional)
 
-    Input Parameters:
-        --pathogen              String: one of ["hMPV", "hRV", "hRSVA", "hRSVB", "CA", "CB"] (default: 'hMPV')
-        --method                String: one of ["amplicon", "metagenomics"] (default: 'amplicon')
+    Input Options [Files/Directories]: 
+    ----------------------------------
+        --fastq_dir             (required) Path to the base directory containing sequencing runs.  
+                                Must contain subdirectories named 'runXX' (e.g., run1, rsv_run2, hmpv_run03_data),  
+                                each with 'barcodeXX' folders inside (e.g., barcode01, barcode02).  
+ 
+                                Example structure:
+                                --------------------------------------------
+                                /path/to/raw_data/
+                                ├── run1/
+                                │   ├── barcode01/
+                                │   ├── barcode02/
+                                ├── hMPV_run2_2025/
+                                │   ├── barcode01/ 
+                                --------------------------------------------
+
+        --metadata_tsv          (optional) Path to a tab-separated values (TSV) metadata file.  
+                                Must include 'sequence_run', 'barcode_num', and 'sample_id' columns.  
+                                If provided, samples missing required metadata will be excluded.  
+  
+                                Example TSV format:
+                                --------------------------------------------
+                                sequence_run    barcode_num    sample_id
+                                run1            barcode01      SMP001
+                                run4            barcode01      SMP049
+                                --------------------------------------------
+
+        --multi_ref_file       (Optional) Path to a FASTA MSA reference file. See the "Artic MinION Parameters" section for details.  
+
+
+    Input Options:
+    --------------
+        --pathogen              String: Select from ["hMPV", "hRV", "hRSVA", "hRSVB", "CA", "CB"] (default: "hMPV").  
+        --method                Analysis method to use: "amplicon" or "metagenomics" (default: "amplicon").
+
 
     Output Options:
-        --outdir                Path to the directory where results will be saved (default: './Results' in the pipeline run directory)
+    ---------------
+        --outdir                Path to the directory where results will be saved.  
+                                Default: './Results' within the pipeline run directory.  
+
 
     Module options
+    --------------
         --skip_assembly         Boolean: If set, skips the genome assembly step (default: false)
         --skip_qc               Boolean: If set, skips the quality check step for FASTQ files (default: true)
 
-    Assembly Step Parameters:
-        --normalize             Number to reduce computational burden (default: 1000)
-        --min_read_length       Number to filter out raw sequences (default: 50)
-        --max_read_length       Number to filter out raw sequences (default: null, meaning no maximum length restriction)
-        --min_read_quality      Minimum read quality threshold (default: null, meaning no maximum read quality restriction)
 
-    Primer Scheme Parameters (Required if --method = 'amplicon'):
-        --scheme_directory      Path to the directory containing the primer scheme (required for 'amplicon')
-        --scheme_name           String name for the scheme (required for 'amplicon')
-        --scheme_version        String specifying the scheme version (required for 'amplicon')
-        --medaka_model          String for Medaka model (default: 'r1041_e82_400bps_hac_v4.3.0', required for 'amplicon')
+    Assembly Step Parameters:
+    -------------------------
+        Artic Guppyplex Parameters:
+        ---------------------------
+        --min_read_length       Minimum length for raw sequences to be retained (Default: 10).  
+        --max_read_length       Maximum length for raw sequences (Default: null - no maximum length restriction).  
+        --min_read_quality      Minimum read quality threshold (Default: null - no quality restriction).  
+
+
+        Artic MinION Parameters:
+        ------------------------
+        --normalise             Number normalise down to moderate coverage to save runtime (default: 100, deactivate with `--normalise 0`)
+        --multi_ref_file        A FASTA file with multiple aligned references; the closest match is selected. 
+                                The primer scheme reference must be included. If the file is not provided, 
+                                only the primer scheme reference sequence is used.
+        --circular              Treat the genome as circular. If not specified, the genome is assumed to be linear (default).
+        --no-indel              Do not report InDels (uses SNP-only mode of nanopolish/medaka)(default: InDels are reported).
+        --primer-match-threshold 
+                                Allow fuzzy primer matching within this threshold (default: 35)
+        --min_mapq              Minimum mapping quality to consider (default: 20)              
+        --min_depth             Minimum coverage required for a position to be included in the consensus sequence (default: 20)
+
+
+        Reference FASTA and BED file (Required if --method="amplicon"):
+        --------------------------------------------------------------- 
+        --ref_fasta             Reference FASTA sequence for the scheme (required for amplicon mode).
+        --ref_bed               BED file containing primer scheme (required for amplicon mode).
+        --clair3_model          Clair3 model to use (if not provided, pipeline uses models available in the container).
+        --clair3_model_dir      Path to directory containing Clair3 models (defaults to container model directory).
 
     Example:
-        nextflow run main.nf -profile docker,local --fastq_dir reads/ --outdir Results/ --metadata_tsv metadata.tsv
+    --------
+        nextflow run main.nf -profile docker,local --fastq_dir raw_reads/ --outdir Results/ --metadata_tsv metadata.tsv
     """
     exit(0)
 }
