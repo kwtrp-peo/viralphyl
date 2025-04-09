@@ -1,13 +1,14 @@
 process ARTIC_GUPPYPLEX {
      tag "$sample_id"
-     errorStrategy 'ignore'
-
+     label 'error_ignore'
+     label 'process_medium'
+    
     // Fixes compatibility issues on ARM-based machines (e.g., Apple M1, M2, M3)
     beforeScript "export DOCKER_DEFAULT_PLATFORM=linux/amd64"
 
     container "${workflow.containerEngine == 'singularity' || workflow.containerEngine == 'apptainer' ? 
-    'docker://samordil/artic-multipurpose:1.6.2' : 
-    'docker.io/samordil/artic-multipurpose:1.6.2'}"
+    'docker://samordil/artic-multipurpose:1.2.0' : 
+    'docker.io/samordil/artic-multipurpose:1.2.0'}"
 
     input:
     tuple val(sample_id), path(fastq_dir)
@@ -23,6 +24,6 @@ process ARTIC_GUPPYPLEX {
     artic guppyplex  \
         --directory $fastq_dir  \\
          $args \\
-        --output /dev/stdout | gzip -c > ${sample_id}.fastq.gz
+        --output /dev/stdout | pigz -p $task.cpus > ${sample_id}.fastq.gz
     """
 }
