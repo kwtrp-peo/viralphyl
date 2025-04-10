@@ -1,12 +1,23 @@
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
+    IMPORT LOCAL MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
  include { GENERATE_SAMPLESHEET                 } from '../modules/local/generate_samplesheet'
  include { ARTIC_GUPPYPLEX                      } from '../modules/local/artic_guppyplex'
  include { ARTIC_MINION                         } from '../modules/local/artic_minion'
  include { COLLAPSE_PRIMER_BED                  } from '../modules/local/collapse_primer_bed'
+
+
+ /*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    IMPORT LOCAL MODULES / SUBWORKFLOWS / FUNCTIONS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+include { MOSDEPTH                             } from '../modules/nf-core/mosdepth/main'
+
+
+
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -86,7 +97,20 @@ workflow AMPLICON_BASED {
         ARTIC_MINION.out.bed
     )
 
-    COLLAPSE_PRIMER_BED.out.collapsed_bed.view()
+    // Generate regions/amplicon  
+    // requeires a .BED, .BAM and .BAI files [ seqId, bam, bai, bed ]
+    MOSDEPTH (
+        ARTIC_MINION.out.bam_primertrimmed
+            .map { tuple(id:it.simpleName, it) }
+            .join( 
+                ARTIC_MINION.out.bai_primertrimmed.map { tuple(id:it.simpleName, it)}, by: [0]
+            ).join(
+                COLLAPSE_PRIMER_BED.out.collapsed_bed.map { tuple(id:it.simpleName, it)}, by: [0]
+            ),
+        [ [:], [] ] 
+    )
+
+    MOSDEPTH.out.regions_bed.view()
 }
 
 /*
