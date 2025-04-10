@@ -3,7 +3,7 @@ node_modules/
 work/*
 data/*
 results/
-.DS_Store
+**/.DS_Store
 testing*
 *.pyc
 test*
