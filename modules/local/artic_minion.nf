@@ -8,8 +8,8 @@ process ARTIC_MINION {
     beforeScript "export DOCKER_DEFAULT_PLATFORM=linux/amd64"
 
     container "${workflow.containerEngine == 'singularity' || workflow.containerEngine == 'apptainer' ? 
-    'docker://samordil/artic-multipurpose:1.2.0' : 
-    'docker.io/samordil/artic-multipurpose:1.2.0'}"
+    'docker://samordil/artic-multipurpose:1.2.1' : 
+    'docker.io/samordil/artic-multipurpose:1.2.1'}"
 
     input:
     val model_str
@@ -26,6 +26,7 @@ process ARTIC_MINION {
     path "${filename}.trimmed.rg.sorted.bam.bai"        , emit: bai_trimmed
     path "${filename}.primertrimmed.rg.sorted.bam"      , emit: bam_primertrimmed
     path "${filename}.primertrimmed.rg.sorted.bam.bai"  , emit: bai_primertrimmed
+    path "${filename}.processed.scheme.bed"             , emit: bed
     path "${filename}.consensus.fasta"                  , emit: fasta
     path "${filename}.pass.vcf.gz"                      , emit: vcf
     path "${filename}.pass.vcf.gz.tbi"                  , emit: tbi

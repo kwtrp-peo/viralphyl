@@ -4,8 +4,9 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
  include { GENERATE_SAMPLESHEET                 } from '../modules/local/generate_samplesheet'
- include { ARTIC_GUPPYPLEX                       } from '../modules/local/artic_guppyplex'
- include { ARTIC_MINION                          } from '../modules/local/artic_minion'
+ include { ARTIC_GUPPYPLEX                      } from '../modules/local/artic_guppyplex'
+ include { ARTIC_MINION                         } from '../modules/local/artic_minion'
+ include { COLLAPSE_PRIMER_BED                  } from '../modules/local/collapse_primer_bed'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -79,6 +80,13 @@ workflow AMPLICON_BASED {
         ch_ref_bed,                         // reference bed file - required
         ARTIC_GUPPYPLEX.out.fastq_gz        // concatenated sample fastq file
     )
+
+    // Clean up primer bed for plotting
+    COLLAPSE_PRIMER_BED (
+        ARTIC_MINION.out.bed
+    )
+
+    COLLAPSE_PRIMER_BED.out.collapsed_bed.view()
 }
 
 /*
