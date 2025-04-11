@@ -172,7 +172,7 @@ def generate_samplesheet(base_dir, metadata_file, output_file, output_format, mi
     else:
         samplesheet_df.to_csv(output_file, index=False)
 
-    print(f"\n✅ SUCCESS: Samplesheet generated: {output_file}")
+    print(f"\n SUCCESS: Samplesheet generated: {output_file}")
 
 
 if __name__ == "__main__":

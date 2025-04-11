@@ -8,6 +8,7 @@
  include { ARTIC_MINION                         } from '../modules/local/artic_minion'
  include { COLLAPSE_PRIMER_BED                  } from '../modules/local/collapse_primer_bed'
  include { PLOT_MOSDEPTH_REGIONS                } from '../modules/local/plot_mosdepth_region.nf'
+ include { GET_ASSEMBLY_STATS                   } from '../modules/local/get_assembly_stats'
 
  /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -114,6 +115,12 @@ workflow AMPLICON_BASED {
             bed_gz -> bed_gz[1]
         }.collect()
     )
+
+    // Get assembly statistics
+    GET_ASSEMBLY_STATS (
+        ARTIC_MINION.out.tsv.collect()
+    )
+
 }
 
 /*
