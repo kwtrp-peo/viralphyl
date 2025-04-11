@@ -7,7 +7,7 @@
  include { ARTIC_GUPPYPLEX                      } from '../modules/local/artic_guppyplex'
  include { ARTIC_MINION                         } from '../modules/local/artic_minion'
  include { COLLAPSE_PRIMER_BED                  } from '../modules/local/collapse_primer_bed'
-
+ include { PLOT_MOSDEPTH_REGIONS                } from '../modules/local/plot_mosdepth_region.nf'
 
  /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -15,8 +15,6 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 include { MOSDEPTH                             } from '../modules/nf-core/mosdepth/main'
-
-
 
 
 /*
@@ -101,16 +99,21 @@ workflow AMPLICON_BASED {
     // requeires a .BED, .BAM and .BAI files [ seqId, bam, bai, bed ]
     MOSDEPTH (
         ARTIC_MINION.out.bam_primertrimmed
-            .map { tuple(id:it.simpleName, it) }
+            .map { bam_file -> tuple(id:bam_file.simpleName, bam_file) }
             .join( 
-                ARTIC_MINION.out.bai_primertrimmed.map { tuple(id:it.simpleName, it)}, by: [0]
+                ARTIC_MINION.out.bai_primertrimmed.map { bai_file -> tuple(id:bai_file.simpleName, bai_file)}, by: [0]
             ).join(
-                COLLAPSE_PRIMER_BED.out.collapsed_bed.map { tuple(id:it.simpleName, it)}, by: [0]
+                COLLAPSE_PRIMER_BED.out.collapsed_bed.map { bed_file -> tuple(id:bed_file.simpleName, bed_file)}, by: [0]
             ),
         [ [:], [] ] 
     )
 
-    MOSDEPTH.out.regions_bed.view()
+    // Generate mosdepth plots for visualization
+    PLOT_MOSDEPTH_REGIONS (
+        MOSDEPTH.out.regions_bed.map {
+            bed_gz -> bed_gz[1]
+        }.collect()
+    )
 }
 
 /*
