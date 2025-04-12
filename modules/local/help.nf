@@ -82,7 +82,7 @@ def showHelp() {
         --multi_ref_file        A FASTA file with multiple aligned references; the closest match is selected. 
                                 The primer scheme reference must be included. If the file is not provided, 
                                 only the primer scheme reference sequence is used.
-        --circular              Treat the genome as circular. If not specified, the genome is assumed to be linear (default).
+        --genotypes             Enable genotype output for the closest reference match. *Requires --multi_ref_file*. [Default: true]
         --no-indel              Do not report InDels (uses SNP-only mode of nanopolish/medaka)(default: InDels are reported).
         --primer-match-threshold 
                                 Allow fuzzy primer matching within this threshold (default: 35)
