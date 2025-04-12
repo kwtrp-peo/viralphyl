@@ -9,6 +9,7 @@
  include { COLLAPSE_PRIMER_BED                  } from '../modules/local/collapse_primer_bed'
  include { PLOT_MOSDEPTH_REGIONS                } from '../modules/local/plot_mosdepth_region.nf'
  include { GET_ASSEMBLY_STATS                   } from '../modules/local/get_assembly_stats'
+ include { GET_GENOTYPES                        } from '../modules/local/get_genotypes'
 
  /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -120,6 +121,13 @@ workflow AMPLICON_BASED {
     GET_ASSEMBLY_STATS (
         ARTIC_MINION.out.tsv.collect()
     )
+
+    // Only process genotypes when multiref option has been used
+    if (params.genotypes && params.multi_ref_file) {
+        GET_GENOTYPES (
+            ARTIC_MINION.out.fasta.collect()
+        )
+    } 
 
 }
 
