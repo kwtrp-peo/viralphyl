@@ -10,6 +10,8 @@
  include { PLOT_MOSDEPTH_REGIONS                } from '../modules/local/plot_mosdepth_region.nf'
  include { GET_ASSEMBLY_STATS                   } from '../modules/local/get_assembly_stats'
  include { GET_GENOTYPES                        } from '../modules/local/get_genotypes'
+ include { AGGREGATE_ASSEMBLY_TSVS              } from '../modules/local/aggregate_assembly_tsv'
+
 
  /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -124,11 +126,18 @@ workflow AMPLICON_BASED {
 
     // Only process genotypes when multiref option has been used
     if (params.genotypes && params.multi_ref_file) {
-        GET_GENOTYPES (
-            ARTIC_MINION.out.fasta.collect()
-        )
-    } 
+        GET_GENOTYPES ( ARTIC_MINION.out.fasta.collect() )
+        ch_genotypes = GET_GENOTYPES.out.tsv 
+    } else {
+        ch_genotypes = Channel.empty()
+    }
 
+    // Concatenate all tsv channels then collect into a single channel
+    AGGREGATE_ASSEMBLY_TSVS {
+        GENERATE_SAMPLESHEET.out.samplesheet
+            .concat( GET_ASSEMBLY_STATS.out.tsv, ch_genotypes )
+            .collect()
+    }
 }
 
 /*
