@@ -14,7 +14,7 @@
 
 
 # Print TSV header
-echo -e "sample_id\tref_accession\tgenotype"
+echo -e "strain_id\tref_accession\tgenotype"
 
 # Process each input file
 for fasta_file in "$@"; do
