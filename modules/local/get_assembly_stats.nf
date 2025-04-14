@@ -15,12 +15,14 @@ process GET_ASSEMBLY_STATS {
 
     output:
     path "assembly_stats.tsv"                   , emit: tsv
+    path "genome_coverage.png"                  , emit: png
 
     script:
     """
     get_assembly_stats.py \\
         --tsv-files  $tsv_files\\
         --threads $task.cpus \\
-        --output assembly_stats.tsv
+        --output-tsv assembly_stats.tsv \\
+        --output-plot genome_coverage.png
     """
 }
