@@ -88,7 +88,7 @@ def showHelp() {
                                 Allow fuzzy primer matching within this threshold (default: 35)
         --min_mapq              Minimum mapping quality to consider (default: 20)              
         --min_depth             Minimum coverage required for a position to be included in the consensus sequence (default: 20)
-
+        --sequence_threshold    Min coverage cutoff for tree construction (0.0-1.0, default: 0.7)
 
         Reference FASTA and BED file (Required if --method="amplicon"):
         --------------------------------------------------------------- 

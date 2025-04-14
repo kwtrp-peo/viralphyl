@@ -11,8 +11,8 @@
  include { GET_ASSEMBLY_STATS                   } from '../modules/local/get_assembly_stats'
  include { GET_GENOTYPES                        } from '../modules/local/get_genotypes'
  include { AGGREGATE_ASSEMBLY_TSVS              } from '../modules/local/aggregate_assembly_tsv'
-
-
+ include { FASTA_META_FILTER                    } from '../modules/local/fasta_meta_filter'
+ 
  /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     IMPORT LOCAL MODULES / SUBWORKFLOWS / FUNCTIONS
@@ -138,6 +138,11 @@ workflow AMPLICON_BASED {
             .concat( GET_ASSEMBLY_STATS.out.tsv, ch_genotypes )
             .collect()
     }
+
+    FASTA_META_FILTER (
+        ARTIC_MINION.out.fasta.collect(),
+        AGGREGATE_ASSEMBLY_TSVS.out.tsv
+    )
 }
 
 /*

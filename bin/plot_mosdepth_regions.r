@@ -144,7 +144,7 @@ if (ncol(dat) == 6 && length(INPUT_FILES) > 1) {
     rownames(mat) <- mat[,1]
     mat <- t(as.matrix(log10(mat[,-1] + 1)))
     heatmap <-  Heatmap(mat,
-                        column_title         = "Heatmap to show median amplicon coverage across samples",
+                        column_title         = "Sample-wise heatmap of median coverage across amplicons",
                         name                 = "log10(Coverage+1)",
                         cluster_rows         = TRUE,
                         cluster_columns      = FALSE,
