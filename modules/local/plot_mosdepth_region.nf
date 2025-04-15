@@ -13,8 +13,8 @@ process PLOT_MOSDEPTH_REGIONS {
     path beds
 
     output:
-    path '*coverage.pdf'                        , emit: coverage_pdf
-    path '*coverage.tsv'                        , emit: coverage_tsv
+    path '*coverage.pdf'                        , optional:true, emit: coverage_pdf
+    path '*coverage.tsv'                        , optional:true, emit: coverage_tsv
     path '*heatmap.pdf'                         , optional:true, emit: heatmap_pdf
     path '*heatmap.tsv'                         , optional:true, emit: heatmap_tsv
 
