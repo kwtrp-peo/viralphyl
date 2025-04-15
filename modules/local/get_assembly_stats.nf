@@ -1,5 +1,5 @@
-process ARTIC_GUPPYPLEX {
-     tag "$sample_id"
+process GET_ASSEMBLY_STATS {
+     tag "getting assembly stats"
      label 'error_ignore'
      label 'process_medium'
     
@@ -11,19 +11,18 @@ process ARTIC_GUPPYPLEX {
     'docker.io/samordil/artic-multipurpose:1.2.1'}"
 
     input:
-    tuple val(sample_id), path(fastq_dir)
+    path tsv_files
 
     output:
-    path "${sample_id}.fastq.gz"                      , emit: fastq_gz
+    path "assembly_stats.tsv"                   , emit: tsv
+    path "genome_coverage.png"                  , emit: png
 
     script:
-    // Check for optional commandline arguments
-    def args = task.ext.args ?: ''
-
     """
-    artic guppyplex  \
-        --directory $fastq_dir  \\
-         $args \\
-        --output /dev/stdout | pigz -p $task.cpus > ${sample_id}.fastq.gz
+    get_assembly_stats.py \\
+        --tsv-files  $tsv_files\\
+        --threads $task.cpus \\
+        --output-tsv assembly_stats.tsv \\
+        --output-plot genome_coverage.png
     """
 }

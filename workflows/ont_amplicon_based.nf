@@ -1,11 +1,25 @@
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
+    IMPORT LOCAL MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
  include { GENERATE_SAMPLESHEET                 } from '../modules/local/generate_samplesheet'
- include { ARTIC_GUPPYPLEX                       } from '../modules/local/artic_guppyplex'
- include { ARTIC_MINION                          } from '../modules/local/artic_minion'
+ include { ARTIC_GUPPYPLEX                      } from '../modules/local/artic_guppyplex'
+ include { ARTIC_MINION                         } from '../modules/local/artic_minion'
+ include { COLLAPSE_PRIMER_BED                  } from '../modules/local/collapse_primer_bed'
+ include { PLOT_MOSDEPTH_REGIONS                } from '../modules/local/plot_mosdepth_region.nf'
+ include { GET_ASSEMBLY_STATS                   } from '../modules/local/get_assembly_stats'
+ include { GET_GENOTYPES                        } from '../modules/local/get_genotypes'
+ include { AGGREGATE_ASSEMBLY_TSVS              } from '../modules/local/aggregate_assembly_tsv'
+ include { FASTA_META_FILTER                    } from '../modules/local/fasta_meta_filter'
+ 
+ /*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    IMPORT LOCAL MODULES / SUBWORKFLOWS / FUNCTIONS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+include { MOSDEPTH                             } from '../modules/nf-core/mosdepth/main'
+
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -78,6 +92,56 @@ workflow AMPLICON_BASED {
         ch_ref_fasta,                       // reference bed file - required
         ch_ref_bed,                         // reference bed file - required
         ARTIC_GUPPYPLEX.out.fastq_gz        // concatenated sample fastq file
+    )
+
+    // Clean up primer bed for plotting
+    COLLAPSE_PRIMER_BED (
+        ARTIC_MINION.out.bed
+    )
+
+    // Generate regions/amplicon  
+    // requeires a .BED, .BAM and .BAI files [ seqId, bam, bai, bed ]
+    MOSDEPTH (
+        ARTIC_MINION.out.bam_primertrimmed
+            .map { bam_file -> tuple(id:bam_file.simpleName, bam_file) }
+            .join( 
+                ARTIC_MINION.out.bai_primertrimmed.map { bai_file -> tuple(id:bai_file.simpleName, bai_file)}, by: [0]
+            ).join(
+                COLLAPSE_PRIMER_BED.out.collapsed_bed.map { bed_file -> tuple(id:bed_file.simpleName, bed_file)}, by: [0]
+            ),
+        [ [:], [] ] 
+    )
+
+    // Generate mosdepth plots for visualization
+    PLOT_MOSDEPTH_REGIONS (
+        MOSDEPTH.out.regions_bed.map {
+            bed_gz -> bed_gz[1]
+        }.collect()
+    )
+
+    // Get assembly statistics
+    GET_ASSEMBLY_STATS (
+        ARTIC_MINION.out.tsv.collect()
+    )
+
+    // Only process genotypes when multiref option has been used
+    if (params.genotypes && params.multi_ref_file) {
+        GET_GENOTYPES ( ARTIC_MINION.out.fasta.collect() )
+        ch_genotypes = GET_GENOTYPES.out.tsv 
+    } else {
+        ch_genotypes = Channel.empty()
+    }
+
+    // Concatenate all tsv channels then collect into a single channel
+    AGGREGATE_ASSEMBLY_TSVS {
+        GENERATE_SAMPLESHEET.out.samplesheet
+            .concat( GET_ASSEMBLY_STATS.out.tsv, ch_genotypes )
+            .collect()
+    }
+
+    FASTA_META_FILTER (
+        ARTIC_MINION.out.fasta.collect(),
+        AGGREGATE_ASSEMBLY_TSVS.out.tsv
     )
 }
 
