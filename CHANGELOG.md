@@ -1,3 +1,10 @@
+## [0.4.1](https://github.com/kwtrp-peo/viralphyl/compare/v0.4.0...v0.4.1) (2025-04-15)
+
+
+### Bug Fixes
+
+* Decoupled samplesheet and assembly module ([4367e2e](https://github.com/kwtrp-peo/viralphyl/commit/4367e2e335b3a7fe92ff805b94b5b366efe030ac))
+
 # [0.4.0](https://github.com/kwtrp-peo/viralphyl/compare/v0.3.0...v0.4.0) (2025-04-15)
 
 
