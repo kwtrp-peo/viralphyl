@@ -1,3 +1,22 @@
+# [0.4.0](https://github.com/kwtrp-peo/viralphyl/compare/v0.3.0...v0.4.0) (2025-04-15)
+
+
+### Bug Fixes
+
+* Correct metadata processing - assembly module ([d9c3a96](https://github.com/kwtrp-peo/viralphyl/commit/d9c3a96a53a109e9925236dfeaccf7ae9070922a))
+* Fixed assembly stats visualization ([7e7239e](https://github.com/kwtrp-peo/viralphyl/commit/7e7239e9f5e58e846413f910bfbc2c4e240875e2))
+
+
+### Features
+
+* Add a module to retrieve assembly statistics ([e401df6](https://github.com/kwtrp-peo/viralphyl/commit/e401df6844a49c987cc0d5510394c7da285f668f))
+* Add genotype extraction module ([dad6587](https://github.com/kwtrp-peo/viralphyl/commit/dad6587446d0251bb1951416b7fcfb9d9980141a))
+* Add module for aggregating tsvs ([cbc6b64](https://github.com/kwtrp-peo/viralphyl/commit/cbc6b64f5df50f8a4c2cd211643faca0ba5f773f))
+* Add module for mosdepth plots ([917af17](https://github.com/kwtrp-peo/viralphyl/commit/917af17ec54ff8f8108d82a38ca45e6b075909fb))
+* Add mosdepth module ([b026a2e](https://github.com/kwtrp-peo/viralphyl/commit/b026a2e162589eec4889d03b133dfabd954f56a7))
+* Add primer collapse module ([a088cff](https://github.com/kwtrp-peo/viralphyl/commit/a088cff2399a6f5d5a74db18e58c4ea23bd842b4))
+* Add sequence and metadata cleaning module ([a1542d6](https://github.com/kwtrp-peo/viralphyl/commit/a1542d623ed298c2472e475b7facb7aa3ddcef40))
+
 # [0.3.0](https://github.com/kwtrp-peo/viralphyl/compare/v0.2.0...v0.3.0) (2025-04-09)
 
 
