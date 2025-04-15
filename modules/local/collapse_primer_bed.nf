@@ -1,7 +1,8 @@
-process ARTIC_GUPPYPLEX {
-     tag "$sample_id"
+process COLLAPSE_PRIMER_BED {
+
+     tag "collapsing $filename"
      label 'error_ignore'
-     label 'process_medium'
+     label 'process_single'
     
     // Fixes compatibility issues on ARM-based machines (e.g., Apple M1, M2, M3)
     beforeScript "export DOCKER_DEFAULT_PLATFORM=linux/amd64"
@@ -11,19 +12,22 @@ process ARTIC_GUPPYPLEX {
     'docker.io/samordil/artic-multipurpose:1.2.1'}"
 
     input:
-    tuple val(sample_id), path(fastq_dir)
+    path scheme_bed
 
     output:
-    path "${sample_id}.fastq.gz"                      , emit: fastq_gz
+    path "*.collapsed.scheme.bed"                      ,        emit: collapsed_bed
 
     script:
+    // Get the name of the file being processed
+    filename = scheme_bed.simpleName
+
     // Check for optional commandline arguments
     def args = task.ext.args ?: ''
 
     """
-    artic guppyplex  \
-        --directory $fastq_dir  \\
-         $args \\
-        --output /dev/stdout | pigz -p $task.cpus > ${sample_id}.fastq.gz
+    collapse_primer_bed.py \\
+        --bed-file $scheme_bed \\
+        --output-bed ${filename}.collapsed.scheme.bed \\
+        --fix-negatives
     """
 }

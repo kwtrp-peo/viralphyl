@@ -36,14 +36,14 @@ def showHelp() {
                                 --------------------------------------------
 
         --metadata_tsv          (optional) Path to a tab-separated values (TSV) metadata file.  
-                                Must include 'sequence_run', 'barcode_num', and 'sample_id' columns.  
+                                Must include 'sequence_run', 'barcode_num', 'sample_id' and 'collection_date' columns.  
                                 If provided, samples missing required metadata will be excluded.  
   
                                 Example TSV format:
                                 --------------------------------------------
-                                sequence_run    barcode_num    sample_id
-                                run1            barcode01      SMP001
-                                run4            barcode01      SMP049
+                                sequence_run    barcode_num    sample_id    collection_date
+                                run1            barcode01      SMP001       2025-04-20
+                                run4            barcode01      SMP049       2025-04-27
                                 --------------------------------------------
 
         --multi_ref_file       (Optional) Path to a FASTA MSA reference file. See the "Artic MinION Parameters" section for details.  
@@ -82,13 +82,13 @@ def showHelp() {
         --multi_ref_file        A FASTA file with multiple aligned references; the closest match is selected. 
                                 The primer scheme reference must be included. If the file is not provided, 
                                 only the primer scheme reference sequence is used.
-        --circular              Treat the genome as circular. If not specified, the genome is assumed to be linear (default).
+        --genotypes             Enable genotype output for the closest reference match. *Requires --multi_ref_file*. [Default: true]
         --no-indel              Do not report InDels (uses SNP-only mode of nanopolish/medaka)(default: InDels are reported).
         --primer-match-threshold 
                                 Allow fuzzy primer matching within this threshold (default: 35)
         --min_mapq              Minimum mapping quality to consider (default: 20)              
         --min_depth             Minimum coverage required for a position to be included in the consensus sequence (default: 20)
-
+        --sequence_threshold    Min coverage cutoff for tree construction (0.0-1.0, default: 0.7)
 
         Reference FASTA and BED file (Required if --method="amplicon"):
         --------------------------------------------------------------- 
