@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """
-fasta_meta_filter.py - Process FASTA files with metadata merging, coverage filtering, and optional visualization
+FASTA metadata filtering and processing tool.
+
+Processes FASTA files with metadata merging, coverage filtering, and optional visualization.
 """
 
 import argparse
@@ -11,8 +13,19 @@ import sys
 import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 
+
 def stream_records(fasta_paths):
-    """Stream FASTA records one at a time with error handling"""
+    """Generator that streams FASTA records one at a time with error handling.
+    
+    Args:
+        fasta_paths (list): List of Path objects pointing to FASTA files
+        
+    Yields:
+        Bio.SeqRecord: One FASTA record at a time
+        
+    Note:
+        Silently skips files that cause errors while processing
+    """
     for fasta_path in fasta_paths:
         try:
             with fasta_path.open("r") as handle:
@@ -22,12 +35,25 @@ def stream_records(fasta_paths):
             print(f"Error processing {fasta_path}: {str(e)}", file=sys.stderr)
             continue
 
+
 def validate_metadata(metadata_df, merge_on):
-    """Validate metadata dataframe structure"""
+    """Validate metadata dataframe structure and content.
+    
+    Args:
+        metadata_df (pd.DataFrame): Metadata dataframe to validate
+        merge_on (str): Column name to use for merging
+        
+    Returns:
+        pd.DataFrame: Validated metadata dataframe
+        
+    Raises:
+        SystemExit: If validation fails with error message to stderr
+    """
     if merge_on not in metadata_df.columns:
         print(f"Error: Merge column '{merge_on}' missing from metadata", file=sys.stderr)
         sys.exit(1)
     
+    # Ensure merge column is string type and has no nulls
     metadata_df[merge_on] = metadata_df[merge_on].astype(str)
     if metadata_df[merge_on].isnull().any():
         print("Error: Merge column contains empty values", file=sys.stderr)
@@ -35,8 +61,16 @@ def validate_metadata(metadata_df, merge_on):
     
     return metadata_df
 
+
 def parse_coverage(coverage_str):
-    """Parse coverage percentage from string"""
+    """Parse coverage percentage from string representation.
+    
+    Args:
+        coverage_str (str): Coverage string (may include '%' symbol)
+        
+    Returns:
+        float: Coverage percentage as float (0.0 if parsing fails)
+    """
     try:
         if pd.isna(coverage_str):
             return 0.0
@@ -44,8 +78,18 @@ def parse_coverage(coverage_str):
     except ValueError:
         return 0.0
 
+
 def generate_coverage_plot(coverage_data, threshold, output_file):
-    """Generate coverage plot only if requested"""
+    """Generate coverage distribution plot and save to file.
+    
+    Args:
+        coverage_data (list): List of dicts with coverage data
+        threshold (float): Coverage threshold percentage for filtering
+        output_file (Path): Output file path for the plot
+        
+    Note:
+        Creates bar plot with pass/fail coloring based on threshold
+    """
     if not coverage_data:
         print("Warning: No coverage data available for plotting", file=sys.stderr)
         return
@@ -53,15 +97,18 @@ def generate_coverage_plot(coverage_data, threshold, output_file):
     plt.figure(figsize=(14, 7))
     colors = {'Pass': '#4E79A7', 'Fail': '#E15759'}
     
+    # Prepare data for plotting
     plot_df = pd.DataFrame(coverage_data)
     plot_df.sort_values('coverage_percent', ascending=False, inplace=True)
     
+    # Create bar plot with conditional coloring
     bars = plt.bar(
         plot_df['strain_id'], 
         plot_df['coverage_percent'],
         color=[colors[status] for status in plot_df['Status']]
     )
     
+    # Add threshold line and formatting
     plt.axhline(y=threshold, color='black', linestyle=':', linewidth=1)
     plt.title('Genome Coverage (%) Per Sample', pad=20)
     plt.xlabel('')
@@ -72,23 +119,31 @@ def generate_coverage_plot(coverage_data, threshold, output_file):
     plt.grid(axis='y', alpha=0.3)
     plt.tight_layout()
     
+    # Create and add legend
     legend_elements = [
         Patch(facecolor=colors['Pass'], label=f'Pass (≥{threshold}%)'),
         Patch(facecolor=colors['Fail'], label=f'Fail (<{threshold}%)')
     ]
     plt.legend(handles=legend_elements, loc='upper right')
+    
+    # Save and clean up
     plt.savefig(output_file, dpi=300, bbox_inches='tight')
     plt.close()
 
+
 def main():
+    """Main execution function handling argument parsing and workflow."""
+    # Configure argument parser with detailed help
     parser = argparse.ArgumentParser(
         description="Process FASTA files with metadata merging and coverage filtering",
         formatter_class=argparse.RawTextHelpFormatter
     )
+    
+    # Input file arguments
     parser.add_argument('-i', '--input-fasta', nargs='+', required=True,
                       help='Input FASTA file(s) (supports wildcards)')
     
-    # Output options
+    # Output file arguments
     parser.add_argument('--tsv-output', type=Path,
                       help='Output TSV file (without sequences)')
     parser.add_argument('--fasta-output', type=Path,
@@ -100,7 +155,7 @@ def main():
     parser.add_argument('--coverage-plot', type=Path,
                       help='Optional output coverage visualization plot (PNG format)')
     
-    # Processing options
+    # Processing parameters
     parser.add_argument('--merge-tsv', type=Path,
                       help='Optional metadata TSV to merge')
     parser.add_argument('--merge-on', default='strain_id',
@@ -114,12 +169,16 @@ def main():
     args = parser.parse_args()
 
     # Validate at least one output was requested
-    if not any([args.tsv_output, args.fasta_output, args.filtered_tsv, args.filtered_fasta, args.coverage_plot]):
+    if not any([args.tsv_output, args.fasta_output, 
+                args.filtered_tsv, args.filtered_fasta, 
+                args.coverage_plot]):
         print("Error: At least one output file must be specified", file=sys.stderr)
         sys.exit(1)
 
-    # Convert threshold to percentage
+    # Convert threshold to percentage for comparison
     threshold_percent = args.threshold * 100
+    
+    # Fields that will be incorporated into sequence IDs
     required_fields = {'genotype', 'collection_date'}
 
     # Resolve and deduplicate input files
@@ -129,69 +188,90 @@ def main():
         print("Error: No FASTA files found", file=sys.stderr)
         sys.exit(1)
 
-    # Pre-process metadata if provided
-    metadata_map = {}
-    metadata_cols = []
-    coverage_available = False
+    # Process metadata if provided
+    metadata_map = {}  # Will hold {strain_id: {metadata_fields}}
+    metadata_cols = []  # List of all metadata columns (except merge_on)
+    coverage_available = False  # Flag if coverage data exists
     
     if args.merge_tsv:
         try:
+            # Load and validate metadata
             metadata_df = validate_metadata(
                 pd.read_csv(args.merge_tsv, sep='\t', dtype=str),
                 args.merge_on
             )
+            
+            # Track available columns
             metadata_cols = [col for col in metadata_df.columns if col != args.merge_on]
             coverage_available = args.coverage_col in metadata_df.columns
             
+            # Create lookup dictionary for metadata
             metadata_map = metadata_df.set_index(args.merge_on).to_dict('index')
         except Exception as e:
             print(f"Metadata error: {str(e)}", file=sys.stderr)
             sys.exit(1)
 
-    # Prepare output files
-    file_handles = {}
+    # Prepare for coverage plotting if requested
     coverage_data = [] if args.coverage_plot else None
     
+    # Open all requested output files
+    file_handles = {}
     try:
+        # TSV output (all records)
         if args.tsv_output:
             tsv_out = open(args.tsv_output, 'w')
             file_handles['tsv_out'] = tsv_out
             tsv_out.write("\t".join(["sequence_id", "strain_id"] + metadata_cols) + "\n")
         
+        # FASTA output (all records)
         if args.fasta_output:
             file_handles['fasta_out'] = open(args.fasta_output, 'w')
         
+        # Filtered TSV output
         if args.filtered_tsv:
             filtered_tsv_out = open(args.filtered_tsv, 'w')
             file_handles['filtered_tsv_out'] = filtered_tsv_out
             filtered_tsv_out.write("\t".join(["sequence_id", "strain_id"] + metadata_cols) + "\n")
         
+        # Filtered FASTA output
         if args.filtered_fasta:
             file_handles['filtered_fasta_out'] = open(args.filtered_fasta, 'w')
 
-        # Process records
+        # Process each FASTA record
         for record in stream_records(fasta_paths):
+            # Parse record description to get strain ID
             parts = record.description.split('/')
             strain_id = parts[0].strip()
-            sequence_id_parts = [strain_id]
+            
+            # Initialize sequence ID components and metadata
+            sequence_id_parts = [strain_id]  # Start with strain_id
             meta_data = {col: '' for col in metadata_cols}
             meets_coverage = False
             coverage_value = 0.0
             
+            # Merge with metadata if available
             if metadata_map and strain_id in metadata_map:
                 meta_row = metadata_map[strain_id]
                 
-                for field in required_fields:
-                    if field in meta_row and meta_row[field]:
-                        sequence_id_parts.append(str(meta_row[field]))
+                # Add genotype first if available
+                if 'genotype' in meta_row and meta_row['genotype']:
+                    sequence_id_parts.append(str(meta_row['genotype']))
                 
+                # Copy all metadata fields
                 for col in metadata_cols:
                     if col in meta_row:
                         meta_data[col] = str(meta_row[col])
                 
+                # Add collection_date last if available
+                if 'collection_date' in meta_row and meta_row['collection_date']:
+                    sequence_id_parts.append(str(meta_row['collection_date']))
+                
+                # Check coverage if available
                 if coverage_available:
                     coverage_value = parse_coverage(meta_row.get(args.coverage_col))
                     meets_coverage = (coverage_value >= threshold_percent)
+                    
+                    # Collect data for plotting if requested
                     if args.coverage_plot:
                         coverage_data.append({
                             'strain_id': strain_id,
@@ -199,32 +279,40 @@ def main():
                             'Status': 'Pass' if meets_coverage else 'Fail'
                         })
             
+            # Construct final sequence ID (now with guaranteed order)
             sequence_id = "|".join(sequence_id_parts)
-            row_line = "\t".join([sequence_id, strain_id] + [meta_data[col] for col in metadata_cols]) + "\n"
             
+            # Prepare TSV output line
+            row_line = "\t".join([sequence_id, strain_id] + 
+                        [meta_data[col] for col in metadata_cols]) + "\n"
+            
+            # Write to full outputs
             if args.fasta_output:
                 file_handles['fasta_out'].write(f">{sequence_id}\n{str(record.seq)}\n")
             if args.tsv_output:
                 file_handles['tsv_out'].write(row_line)
             
+            # Write to filtered outputs if coverage passes (or no coverage check)
             if (not coverage_available) or meets_coverage:
                 if args.filtered_fasta:
                     file_handles['filtered_fasta_out'].write(f">{sequence_id}\n{str(record.seq)}\n")
                 if args.filtered_tsv:
                     file_handles['filtered_tsv_out'].write(row_line)
 
-        # Generate coverage plot if requested
+        # Generate coverage plot if requested and data exists
         if args.coverage_plot:
             if coverage_available and coverage_data:
                 generate_coverage_plot(coverage_data, threshold_percent, args.coverage_plot)
             else:
-                print("Warning: Cannot generate coverage plot - no coverage data available", file=sys.stderr)
+                print("Warning: Cannot generate coverage plot - no coverage data available", 
+                      file=sys.stderr)
 
     finally:
+        # Ensure all files are properly closed
         for handle in file_handles.values():
             handle.close()
 
-    # Print summary
+    # Print summary of generated files
     print(f"\nProcessed {len(fasta_paths)} input files")
     generated_files = {
         'Full FASTA': args.fasta_output,
@@ -236,6 +324,7 @@ def main():
     for desc, path in generated_files.items():
         if path:
             print(f"{desc}: {path}")
+
 
 if __name__ == "__main__":
     main()

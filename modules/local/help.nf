@@ -36,14 +36,14 @@ def showHelp() {
                                 --------------------------------------------
 
         --metadata_tsv          (optional) Path to a tab-separated values (TSV) metadata file.  
-                                Must include 'sequence_run', 'barcode_num', and 'sample_id' columns.  
+                                Must include 'sequence_run', 'barcode_num', 'sample_id' and 'collection_date' columns.  
                                 If provided, samples missing required metadata will be excluded.  
   
                                 Example TSV format:
                                 --------------------------------------------
-                                sequence_run    barcode_num    sample_id
-                                run1            barcode01      SMP001
-                                run4            barcode01      SMP049
+                                sequence_run    barcode_num    sample_id    collection_date
+                                run1            barcode01      SMP001       2025-04-20
+                                run4            barcode01      SMP049       2025-04-27
                                 --------------------------------------------
 
         --multi_ref_file       (Optional) Path to a FASTA MSA reference file. See the "Artic MinION Parameters" section for details.  
