@@ -1,5 +1,5 @@
-process ARTIC_GUPPYPLEX {
-     tag "$sample_id"
+process GET_GENOTYPES {
+     tag "Getting genotypes"
      label 'error_ignore'
      label 'process_medium'
     
@@ -11,19 +11,14 @@ process ARTIC_GUPPYPLEX {
     'docker.io/samordil/artic-multipurpose:1.2.1'}"
 
     input:
-    tuple val(sample_id), path(fastq_dir)
+    path fasta_files
 
     output:
-    path "${sample_id}.fastq.gz"                      , emit: fastq_gz
+    path "genotypes.tsv"                   , emit: tsv
 
     script:
-    // Check for optional commandline arguments
-    def args = task.ext.args ?: ''
-
     """
-    artic guppyplex  \
-        --directory $fastq_dir  \\
-         $args \\
-        --output /dev/stdout | pigz -p $task.cpus > ${sample_id}.fastq.gz
+    get_genotypes.sh $fasta_files > genotypes.tsv
+
     """
 }
