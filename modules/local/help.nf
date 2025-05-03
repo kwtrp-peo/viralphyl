@@ -51,7 +51,8 @@ def showHelp() {
 
     Input Options:
     --------------
-        --pathogen              String: Select from ["hMPV", "hRV", "hRSVA", "hRSVB", "CA", "CB"] (default: "hMPV").  
+        --viral_taxon           String: Select from ["hMPV", "hRV", "hRSVA", "hRSVB", "CA", "CB"] (default: "hMPV").
+        --viral_host            String: Host (default: human)  
         --method                Analysis method to use: "amplicon" or "metagenomics" (default: "amplicon").
 
 
@@ -71,8 +72,8 @@ def showHelp() {
     -------------------------
         Artic Guppyplex Parameters:
         ---------------------------
-        --min_read_length       Minimum length for raw sequences to be retained (Default: 10).  
-        --max_read_length       Maximum length for raw sequences (Default: null - no maximum length restriction).  
+        --min_read_length       Minimum length for raw reads to be retained (Default: 10).  
+        --max_read_length       Maximum length for raw reads (Default: null - no maximum length restriction).  
         --min_read_quality      Minimum read quality threshold (Default: null - no quality restriction).  
 
 
@@ -96,6 +97,22 @@ def showHelp() {
         --ref_bed               BED file containing primer scheme (required for amplicon mode).
         --clair3_model          Clair3 model to use (if not provided, pipeline uses models available in the container).
         --clair3_model_dir      Path to directory containing Clair3 models (defaults to container model directory).
+
+
+    Phylogenetics Step Parameters:
+    ------------------------------
+        GLOBAL DATASET OPTIONS:
+        -----------------------
+        --global_fasta FILE          FASTA file of global genomes (default: download)
+        --global_metadata FILE       TSV metadata file (default: download)
+        --min_sequence_length INT    Min sequence length to keep (-1 = no limit, default: -1)
+        --max_sequence_length INT    Max sequence length to keep (-1 = no limit, default: -1)
+
+        SUBSAMPLING OPTIONS:
+        --------------------
+        --subsample_seed INT         Seed for subsampling (-1 = random, default: 123)
+        --subsample_max_sequences INT Max sequences in tree (default: 250)
+        --subsample_by STR           Criteria: "country", "region", "year", etc. (default: "country year month")
 
     Example:
     --------

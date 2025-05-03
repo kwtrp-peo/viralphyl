@@ -12,7 +12,8 @@
  include { GET_GENOTYPES                        } from '../modules/local/get_genotypes'
  include { AGGREGATE_ASSEMBLY_TSVS              } from '../modules/local/aggregate_assembly_tsv'
  include { FASTA_META_FILTER                    } from '../modules/local/fasta_meta_filter'
- 
+ include { CONTEXTUAL_GLOBAL_DATASET            } from '../subworkflows/local/contextual_global_dataset'
+
  /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     IMPORT LOCAL MODULES / SUBWORKFLOWS / FUNCTIONS
@@ -163,6 +164,43 @@ workflow AMPLICON_BASED {
             AGGREGATE_ASSEMBLY_TSVS.out.tsv
         )
     }
+
+    /*
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        START PHYLOGENETIC MODULE
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    */
+
+    if (!params.skip_phylogenetics) { 
+
+        if (params.global_fasta && params.global_tsv) { 
+            // Runs when global fasta and tsv are provided by the user
+            ch_global_fasta    = file(params.global_fasta)
+            ch_global_tsv      = file(params.global_tsv)
+
+        } else {
+            // If global dataset not provided download the global dataset
+            CONTEXTUAL_GLOBAL_DATASET (
+                params.viral_host,
+                params.viral_taxon,
+                params.min_sequence_length,
+                params.max_sequence_length,
+                params.subsample_seed,
+                params.subsample_max_sequences,
+                params.subsample_by
+            )
+            CONTEXTUAL_GLOBAL_DATASET.out.global_metadata_tsv.view()
+            CONTEXTUAL_GLOBAL_DATASET.out.global_seqs_fasta.view()
+
+        }
+    }
+
+    /*
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        END PHYLOGENETIC MODULE
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    */
+    
 }
 
 /*
