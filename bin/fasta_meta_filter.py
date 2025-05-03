@@ -221,7 +221,7 @@ def main():
         if args.tsv_output:
             tsv_out = open(args.tsv_output, 'w')
             file_handles['tsv_out'] = tsv_out
-            tsv_out.write("\t".join(["sequence_id", "strain_id"] + metadata_cols) + "\n")
+            tsv_out.write("\t".join(["strain", "strain_id"] + metadata_cols) + "\n")
         
         # FASTA output (all records)
         if args.fasta_output:
@@ -231,7 +231,7 @@ def main():
         if args.filtered_tsv:
             filtered_tsv_out = open(args.filtered_tsv, 'w')
             file_handles['filtered_tsv_out'] = filtered_tsv_out
-            filtered_tsv_out.write("\t".join(["sequence_id", "strain_id"] + metadata_cols) + "\n")
+            filtered_tsv_out.write("\t".join(["strain", "strain_id"] + metadata_cols) + "\n")
         
         # Filtered FASTA output
         if args.filtered_fasta:
@@ -280,22 +280,22 @@ def main():
                         })
             
             # Construct final sequence ID (now with guaranteed order)
-            sequence_id = "|".join(sequence_id_parts)
+            strain = "|".join(sequence_id_parts)
             
             # Prepare TSV output line
-            row_line = "\t".join([sequence_id, strain_id] + 
+            row_line = "\t".join([strain, strain_id] + 
                         [meta_data[col] for col in metadata_cols]) + "\n"
             
             # Write to full outputs
             if args.fasta_output:
-                file_handles['fasta_out'].write(f">{sequence_id}\n{str(record.seq)}\n")
+                file_handles['fasta_out'].write(f">{strain}\n{str(record.seq)}\n")
             if args.tsv_output:
                 file_handles['tsv_out'].write(row_line)
             
             # Write to filtered outputs if coverage passes (or no coverage check)
             if (not coverage_available) or meets_coverage:
                 if args.filtered_fasta:
-                    file_handles['filtered_fasta_out'].write(f">{sequence_id}\n{str(record.seq)}\n")
+                    file_handles['filtered_fasta_out'].write(f">{strain}\n{str(record.seq)}\n")
                 if args.filtered_tsv:
                     file_handles['filtered_tsv_out'].write(row_line)
 
