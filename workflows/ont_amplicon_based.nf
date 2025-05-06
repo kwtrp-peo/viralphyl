@@ -13,6 +13,8 @@
  include { AGGREGATE_ASSEMBLY_TSVS              } from '../modules/local/aggregate_assembly_tsv'
  include { FASTA_META_FILTER                    } from '../modules/local/fasta_meta_filter'
  include { CONTEXTUAL_GLOBAL_DATASET            } from '../subworkflows/local/contextual_global_dataset'
+ include { PHYLO_COMBINE_TSVS                   } from '../modules/local/phylo_combine_tsv'
+
 
  /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -20,6 +22,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 include { MOSDEPTH                             } from '../modules/nf-core/mosdepth/main'
+include { SEQKIT_CONCAT                        } from '../modules/nf-core/seqkit/concat/main'
 
 
 /*
@@ -189,9 +192,26 @@ workflow AMPLICON_BASED {
                 params.subsample_max_sequences,
                 params.subsample_by
             )
-            CONTEXTUAL_GLOBAL_DATASET.out.global_metadata_tsv.view()
-            CONTEXTUAL_GLOBAL_DATASET.out.global_seqs_fasta.view()
+           
+            // Combine the assembled tsv and global tsv into a tuple
+            PHYLO_COMBINE_TSVS (
+                FASTA_META_FILTER.out.high_coverage_tsv
+                    .concat(CONTEXTUAL_GLOBAL_DATASET.out.global_metadata_tsv)
+                    .collect()
+            )
 
+            // Combine both the global and assembled fasta files
+            FASTA_META_FILTER.out.high_coverage_fasta
+                    .concat(CONTEXTUAL_GLOBAL_DATASET.out.global_seqs_fasta)
+                    .collect()
+                    .map {
+                        tuple( [:], it)
+                    }.set {fasta_ch}
+
+            // fasta_ch.view()
+            SEQKIT_CONCAT (
+                fasta_ch
+            )
         }
     }
 
