@@ -24,6 +24,7 @@
 include { MOSDEPTH                             } from '../modules/nf-core/mosdepth/main'
 include { SEQKIT_CONCAT                        } from '../modules/nf-core/seqkit/concat/main'
 include { MAFFT_ALIGN                          } from '../modules/nf-core/mafft/align/main'
+include { FASTTREE                             } from '../modules/nf-core/fasttree/main'
 
 
 /*
@@ -207,32 +208,39 @@ workflow AMPLICON_BASED {
             global_tsv_ch        =     CONTEXTUAL_GLOBAL_DATASET.out.global_metadata_tsv  
             global_fasta_ch      =     CONTEXTUAL_GLOBAL_DATASET.out.global_seqs_fasta
         }
-    }
 
-    // Combine the assembled tsv and global tsv into a tuple
-    PHYLO_COMBINE_TSVS (
-        assembled_tsv_ch        // tsv for assembled sequences
-            .concat(global_tsv_ch)     // global tsv
-            .collect()
-    )
-
-    // Concatenate the assembled sequences and the subsampled global sequences
-    assembled_fasta_ch           // assembled 
-            .concat(global_fasta_ch)
-            .collect()
-            .map {
-                tuple( [:], it)
-            }.set {combined_fasta_ch}
-    SEQKIT_CONCAT (
-                combined_fasta_ch
-            )
-
-    // Align the sequences
-    MAFFT_ALIGN (
-        SEQKIT_CONCAT.out.fastx,
-        [[:], []], [[:], []], [[:], []],
-        [[:], []], [[:], []], []
+        // Combine the assembled tsv and global tsv into a tuple
+        PHYLO_COMBINE_TSVS (
+            assembled_tsv_ch        // tsv for assembled sequences
+                .concat(global_tsv_ch)     // global tsv
+                .collect()
         )
+
+        // Concatenate the assembled sequences and the subsampled global sequences
+        assembled_fasta_ch           // assembled 
+                .concat(global_fasta_ch)
+                .collect()
+                .map {
+                    tuple( [:], it)
+                }.set {combined_fasta_ch}
+        SEQKIT_CONCAT (
+                    combined_fasta_ch
+                )
+
+        // Align the sequences
+        MAFFT_ALIGN (
+            SEQKIT_CONCAT.out.fastx,
+            [[:], []], [[:], []], [[:], []],
+            [[:], []], [[:], []], []
+            )
+        
+        // Gererate the phylogenetic tree
+        FASTTREE (
+            MAFFT_ALIGN.out.fas.map{it[1]}
+        )
+
+        // FASTTREE.out.phylogeny.view()
+    }
 
     /*
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
