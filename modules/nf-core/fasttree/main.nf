@@ -10,7 +10,7 @@ process FASTTREE {
     path alignment
 
     output:
-    path "*.tre",         emit: phylogeny
+    path "*.tree",         emit: phylogeny
     path "versions.yml" , emit: versions
 
     when:
@@ -21,9 +21,9 @@ process FASTTREE {
     """
     fasttree \\
         $args \\
-        -log fasttree_phylogeny.tre.log \\
+        -log fasttree_phylogeny.tree.log \\
         -nt $alignment \\
-        > fasttree_phylogeny.tre
+        > fasttree_phylogeny.tree
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

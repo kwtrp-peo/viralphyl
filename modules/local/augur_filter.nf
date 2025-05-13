@@ -3,8 +3,8 @@ process AUGUR_FILTER {
     label 'process_medium'
 
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/augur:25.3.0--pyhdfd78af_0' :
-        'biocontainers/augur:25.3.0--pyhdfd78af_0' }"
+        'https://depot.galaxyproject.org/singularity/augur%3A30.0.1--pyhdfd78af_0' :
+        'biocontainers/augur:30.0.1--pyhdfd78af_0' }"
 
     input:
         path file_tsv
