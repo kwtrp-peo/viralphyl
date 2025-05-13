@@ -1,0 +1,70 @@
+
+process ARTIC_MINION {
+    tag "assembling $filename"
+    //errorStrategy 'ignore'
+
+    // Fixes compatibility issues on ARM-based machines (e.g., Apple M1, M2, M3)
+    beforeScript "export DOCKER_DEFAULT_PLATFORM=linux/amd64"
+
+    container "${workflow.containerEngine == 'singularity' || workflow.containerEngine == 'apptainer' ? 
+    'docker://samordil/artic-multipurpose:1.6.4' : 
+    'docker.io/samordil/artic-multipurpose:1.6.4'}"
+
+    input:
+    path scheme_dir
+    val scheme_name
+    val scheme_version
+    val medaka_model
+    path multi_ref
+    each path(rawReadsFastq)
+     
+    output:
+    path "${filename}.sorted.bam"                       , emit: bam
+    path "${filename}.sorted.bam.bai"                   , emit: bai
+    path "${filename}.trimmed.rg.sorted.bam"            , emit: bam_trimmed
+    path "${filename}.trimmed.rg.sorted.bam.bai"        , emit: bai_trimmed
+    path "${filename}.primertrimmed.rg.sorted.bam"      , emit: bam_primertrimmed
+    path "${filename}.primertrimmed.rg.sorted.bam.bai"  , emit: bai_primertrimmed
+    path "${filename}.consensus.fasta"                  , emit: fasta
+    path "${filename}.pass.vcf.gz"                      , emit: vcf
+    path "${filename}.pass.vcf.gz.tbi"                  , emit: tbi
+    path "${filename}..qc.report.tsv"                   , emit: tsv
+    path "${filename}.coverage_mask.txt.depths.png"     , emit: png
+    path("*.json"), optional:true                       , emit: json
+
+    script:
+    // Check for optional commandline arguments
+    def args = task.ext.args ?: ''
+
+    // Check whether MSA file is provided
+    def multi_ref_file  = multi_ref ? "--select-ref-file $multi_ref" : '' 
+
+    // Get the name of the file being processed
+    filename = rawReadsFastq.simpleName
+
+    """
+    artic minion \\
+	    $multi_ref_file \\
+	    --medaka \\
+	    --threads $task.cpus \\
+	    --scheme-directory $scheme_dir \\
+	    --read-file $rawReadsFastq  \\
+	    --medaka-model $medaka_model \\
+	    --scheme-name $scheme_name \\
+            --scheme-version $scheme_version \\
+            --output $filename \\
+	    $filename
+    """
+}
+
+
+// // ARTIC_GUPPYPLEX.out.fastq_gz.view()
+
+//     ARTIC_MINION (
+//         ch_scheme_directory,                 // scheme directory
+//         scheme_name_ch,                     // scheme name
+//         scheme_version_ch,                  // scheme version
+//         medaka_model_ch,                    // medaka model
+//         ch_select_ref_file,                 // optional multi-reference file
+//         ARTIC_GUPPYPLEX.out.fastq_gz        // concatenated sample fastq file
+//     )

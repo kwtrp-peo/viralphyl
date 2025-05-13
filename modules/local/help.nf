@@ -114,6 +114,10 @@ def showHelp() {
         --subsample_max_sequences INT Max sequences in tree (default: 250)
         --subsample_by STR           Criteria: "country", "region", "year", etc. (default: "country year month")
 
+        AUGUR AUSPICE OPTIONS
+        ---------------------
+        --color_by                  Column name in the TSV file to use for coloring (default: 'region')
+
     Example:
     --------
         nextflow run main.nf -profile docker,local --fastq_dir raw_reads/ --outdir Results/ --metadata_tsv metadata.tsv
