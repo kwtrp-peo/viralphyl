@@ -41,7 +41,7 @@ def process_file(input_path, output_handle, required_cols, write_header=True):
         for row in csv_reader:
             try:
                 output_row = [
-                    row[col_indices[col]] if col_indices[col] is not None and col_indices[col] < len(row) else 'unknown'
+                    row[col_indices[col]] if col_indices[col] is not None and col_indices[col] < len(row) else 'Unspecified'
                     for col in required_cols
                 ]
                 csv_writer.writerow(output_row)

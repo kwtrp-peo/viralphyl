@@ -14,6 +14,8 @@
  include { FASTA_META_FILTER                    } from '../modules/local/fasta_meta_filter'
  include { CONTEXTUAL_GLOBAL_DATASET            } from '../subworkflows/local/contextual_global_dataset'
  include { PHYLO_COMBINE_TSVS                   } from '../modules/local/phylo_combine_tsv'
+ include { AUGUR_TRANSFORM                      } from '../subworkflows/local/augur_transformation'
+
 
 
  /*
@@ -239,7 +241,18 @@ workflow AMPLICON_BASED {
             MAFFT_ALIGN.out.fas.map{it[1]}
         )
 
-        // FASTTREE.out.phylogeny.view()
+        // AUGUR_TRANSFORM: (Includes augur refine, augur traits and augur export)
+        // Generate json file for visualization using auspice
+        //
+        AUGUR_TRANSFORM (
+            FASTTREE.out.phylogeny.map{ [[:], it] },            // tree file in newick
+            MAFFT_ALIGN.out.fas,                                // Aligned sequences
+            PHYLO_COMBINE_TSVS.out.tsv.map{ [[:], it] }         // metadata in tsv
+        )
+
+        // FASTTREE.out.phylogeny.map{ [[:], it] }.view()                             // tree file in newick
+        //     MAFFT_ALIGN.out.fas.view()                                // Aligned sequences
+        //     PHYLO_COMBINE_TSVS.out.tsv.map{ [[:], it] }view()                         // metadata in tsv
     }
 
     /*

@@ -1,8 +1,8 @@
 process EPOST_ENTREZ_DIRECT {
     tag "download $filename global seqeunces"
     label 'process_medium'
+    label 'error_retry'
 
-    conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
     'https://depot.galaxyproject.org/singularity/entrez-direct:22.4--he881be0_0':
     'biocontainers/entrez-direct:22.4--he881be0_0' }"
