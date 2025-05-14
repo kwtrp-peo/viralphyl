@@ -12,13 +12,21 @@
  include { GET_GENOTYPES                        } from '../modules/local/get_genotypes'
  include { AGGREGATE_ASSEMBLY_TSVS              } from '../modules/local/aggregate_assembly_tsv'
  include { FASTA_META_FILTER                    } from '../modules/local/fasta_meta_filter'
- 
+ include { CONTEXTUAL_GLOBAL_DATASET            } from '../subworkflows/local/contextual_global_dataset'
+ include { PHYLO_COMBINE_TSVS                   } from '../modules/local/phylo_combine_tsv'
+ include { AUGUR_TRANSFORM                      } from '../subworkflows/local/augur_transformation'
+
+
+
  /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     IMPORT LOCAL MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 include { MOSDEPTH                             } from '../modules/nf-core/mosdepth/main'
+include { SEQKIT_CONCAT                        } from '../modules/nf-core/seqkit/concat/main'
+include { MAFFT_ALIGN                          } from '../modules/nf-core/mafft/align/main'
+include { FASTTREE                             } from '../modules/nf-core/fasttree/main'
 
 
 /*
@@ -162,7 +170,97 @@ workflow AMPLICON_BASED {
             ARTIC_MINION.out.fasta.collect(),
             AGGREGATE_ASSEMBLY_TSVS.out.tsv
         )
+        
+        // Sequences above 75% genome coverage or as set by user for phylogenetics
+        assembled_tsv_ch        =   FASTA_META_FILTER.out.high_coverage_tsv
+        assembled_fasta_ch      =   FASTA_META_FILTER.out.high_coverage_fasta
+
     }
+
+    /*
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        START PHYLOGENETIC MODULE
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    */
+
+    if (!params.skip_phylogenetics) { 
+
+        // Declare channels that will hold the final fasta and tsv regardless of source
+        global_fasta_ch            = Channel.empty()
+        global_tsv_ch              = Channel.empty()
+
+        if (params.global_fasta && params.global_metadata_tsv) { 
+            // Runs when global fasta and tsv are provided by the user
+            Channel.fromPath(params.global_fasta).set { global_fasta_ch } 
+            Channel.fromPath(params.global_metadata_tsv).set { global_tsv_ch } 
+
+        } else {
+            // If global dataset not provided download the global dataset and subsample
+            CONTEXTUAL_GLOBAL_DATASET (
+                params.viral_host,
+                params.viral_taxon,
+                params.min_sequence_length,
+                params.max_sequence_length,
+                params.subsample_seed,
+                params.subsample_max_sequences,
+                params.subsample_by
+            )
+
+            // subsample globa metadata and sequences
+            global_tsv_ch        =     CONTEXTUAL_GLOBAL_DATASET.out.global_metadata_tsv  
+            global_fasta_ch      =     CONTEXTUAL_GLOBAL_DATASET.out.global_seqs_fasta
+        }
+
+        // Combine the assembled tsv and global tsv into a tuple
+        PHYLO_COMBINE_TSVS (
+            assembled_tsv_ch        // tsv for assembled sequences
+                .concat(global_tsv_ch)     // global tsv
+                .collect()
+        )
+
+        // Concatenate the assembled sequences and the subsampled global sequences
+        assembled_fasta_ch           // assembled 
+                .concat(global_fasta_ch)
+                .collect()
+                .map {
+                    tuple( [:], it)
+                }.set {combined_fasta_ch}
+        SEQKIT_CONCAT (
+                    combined_fasta_ch
+                )
+
+        // Align the sequences
+        MAFFT_ALIGN (
+            SEQKIT_CONCAT.out.fastx,
+            [[:], []], [[:], []], [[:], []],
+            [[:], []], [[:], []], []
+            )
+        
+        // Gererate the phylogenetic tree
+        FASTTREE (
+            MAFFT_ALIGN.out.fas.map{it[1]}
+        )
+
+        // AUGUR_TRANSFORM: (Includes augur refine, augur traits and augur export)
+        // Generate json file for visualization using auspice
+        //
+        AUGUR_TRANSFORM (
+            FASTTREE.out.phylogeny.map{ [[:], it] },            // tree file in newick
+            MAFFT_ALIGN.out.fas,                                // Aligned sequences
+            PHYLO_COMBINE_TSVS.out.tsv.map{ [[:], it] }         // metadata in tsv
+        )
+
+        // FASTTREE.out.phylogeny.map{ [[:], it] }.view()                             // tree file in newick
+        //     MAFFT_ALIGN.out.fas.view()                                // Aligned sequences
+        //     PHYLO_COMBINE_TSVS.out.tsv.map{ [[:], it] }view()                         // metadata in tsv
+    }
+
+    /*
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        END PHYLOGENETIC MODULE
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    */
+    
 }
 
 /*
