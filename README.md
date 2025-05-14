@@ -31,8 +31,8 @@
    - Align reads, call variants, and produce a consensus sequence ( [artic minion](https://artic.readthedocs.io/en/latest/commands/) )
    - Genome-wide and amplicon coverage QC plots ( [mosdepth](https://github.com/brentp/mosdepth/) )
 4. Phylogenetics
-   - Global sequence alignment ( [nextalign](https://github.com/neherlab/nextalign) )
-   - Generate global phylogenetic trees using maximum likelihood method ( [iqtree](http://www.iqtree.org/) )
+   - Global sequence alignment ( [mafft](https://github.com/GSLBiotech/mafft) )
+   - Generate global phylogenetic trees using maximum likelihood method ( [fasttree](https://github.com/morgannprice/fasttree) )
    - maximum likelihood dating and ancestral sequence inference( [treetime](https://github.com/neherlab/treetime) )
    - Refine global phylogeny and create a JSON file ( [augur refine, trait and export](https://docs.nextstrain.org/projects/augur/en/stable/) )
    - Display global phylogenetic tree interactively ( [auspice](https://auspice.us/) )

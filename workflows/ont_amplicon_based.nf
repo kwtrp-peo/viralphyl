@@ -189,10 +189,10 @@ workflow AMPLICON_BASED {
         global_fasta_ch            = Channel.empty()
         global_tsv_ch              = Channel.empty()
 
-        if (params.global_fasta && params.global_tsv) { 
+        if (params.global_fasta && params.global_metadata_tsv) { 
             // Runs when global fasta and tsv are provided by the user
-            global_fasta_ch    = file(params.global_fasta)
-            global_tsv_ch      = file(params.global_tsv)
+            Channel.fromPath(params.global_fasta).set { global_fasta_ch } 
+            Channel.fromPath(params.global_metadata_tsv).set { global_tsv_ch } 
 
         } else {
             // If global dataset not provided download the global dataset and subsample

@@ -104,9 +104,13 @@ def showHelp() {
         GLOBAL DATASET OPTIONS:
         -----------------------
         --global_fasta FILE          FASTA file of global genomes (default: download)
-        --global_metadata FILE       TSV metadata file (default: download)
-        --min_sequence_length INT    Min sequence length to keep (-1 = no limit, default: -1)
-        --max_sequence_length INT    Max sequence length to keep (-1 = no limit, default: -1)
+        --global_metadata_tsv FILE   TSV file containing global metadata (default: download)
+                                     Must include these columns:
+                                     - "strain": Unique sequence identifiers
+                                     - "country": Country information
+                                     - "region": One of the six global continents (Africa, Asia, Europe, N/S America or Oceania)
+        --min_sequence_length INT    Minimum sequence length to keep (-1 = no limit, default: -1)
+        --max_sequence_length INT    Maximum sequence length to keep (-1 = no limit, default: -1)
 
         SUBSAMPLING OPTIONS:
         --------------------
