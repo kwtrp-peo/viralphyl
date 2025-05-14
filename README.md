@@ -31,8 +31,8 @@
    - Align reads, call variants, and produce a consensus sequence ( [artic minion](https://artic.readthedocs.io/en/latest/commands/) )
    - Genome-wide and amplicon coverage QC plots ( [mosdepth](https://github.com/brentp/mosdepth/) )
 4. Phylogenetics
-   - Global sequence alignment ( [nextalign](https://github.com/neherlab/nextalign) )
-   - Generate global phylogenetic trees using maximum likelihood method ( [iqtree](http://www.iqtree.org/) )
+   - Global sequence alignment ( [mafft](https://github.com/GSLBiotech/mafft) )
+   - Generate global phylogenetic trees using maximum likelihood method ( [fasttree](https://github.com/morgannprice/fasttree) )
    - maximum likelihood dating and ancestral sequence inference( [treetime](https://github.com/neherlab/treetime) )
    - Refine global phylogeny and create a JSON file ( [augur refine, trait and export](https://docs.nextstrain.org/projects/augur/en/stable/) )
    - Display global phylogenetic tree interactively ( [auspice](https://auspice.us/) )
@@ -74,7 +74,7 @@
 
 ## Credits
 
-**kwtrp-peo/viralphyl** incorporates some custom R and Python scripts that were originally implemented in [viralrecon](https://github.com/nf-core/viralrecon?tab=readme-ov-file). The pipeline is currently under active development in collaboration with the [KWTRP PEO group](https://github.com/kwtrp-peo). It is coordinated by [George Githinji](https://github.com/ggklf) for the [KEMRI-Wellcome Trust Research Program (KWTRP)](https://kemri-wellcome.org/), Kenya, and primarily implemented and maintained by [Samuel Odoyo](https://github.com/samordil) and [Dorcas Okanda](https://github.com/DOkanda).
+**kwtrp-peo/viralphyl** incorporates some custom R and Python scripts that were originally implemented in [viralrecon](https://github.com/nf-core/viralrecon?tab=readme-ov-file). The pipeline is currently under active development in collaboration with the [KWTRP PEO group](https://github.com/kwtrp-peo). It is coordinated by [George Githinji](https://github.com/ggklf) for the [KEMRI-Wellcome Trust Research Program (KWTRP)](https://kemri-wellcome.org/) and primarily implemented and maintained by [Samuel Odoyo](https://github.com/samordil).
 
 We thank the following people for their extensive assistance in the development of this pipeline\*:
 <!-- TODO nf-core: If applicable, make list of people who have also contributed -->
@@ -82,6 +82,7 @@ We thank the following people for their extensive assistance in the development 
 | --------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | [Arnold Lambisia](https://github.com/arnoldlambisia)      | [KEMRI-Wellcome Trust Research Program, Kenya](https://kemri-wellcome.org/)           |
 | [Brenda Kamau](https://github.com/brendamuthonikamau)     | [KEMRI-Wellcome Trust Research Program, Kenya](https://kemri-wellcome.org/)           |
+| [Dorcas Okanda](https://github.com/DOkanda)               | [KEMRI-Wellcome Trust Research Program, Kenya](https://kemri-wellcome.org/)           |
 | [Edidah Moraa](https://github.com/edidah)                 | [KEMRI-Wellcome Trust Research Program, Kenya](https://kemri-wellcome.org/)           |
 | [John Mwita](https://github.com/morobemwita)              | [KEMRI-Wellcome Trust Research Program, Kenya](https://kemri-wellcome.org/)           |
 | [Parcelli Jepchirchir](https://github.com/Parcelli)       | [KEMRI-Wellcome Trust Research Program, Kenya](https://kemri-wellcome.org/)           |
