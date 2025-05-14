@@ -1,3 +1,15 @@
+# [0.5.0](https://github.com/kwtrp-peo/viralphyl/compare/v0.4.1...v0.5.0) (2025-05-14)
+
+
+### Features
+
+* Add and implement augur transformation subworkflow ([dfcb3c0](https://github.com/kwtrp-peo/viralphyl/commit/dfcb3c0b916d82a79d67c9821383c83abdfaae7e))
+* Add and integrate mafft module ([9122a0b](https://github.com/kwtrp-peo/viralphyl/commit/9122a0b2b144febb708214fdf0a1287ae3f715e4))
+* Add and integrated fasttree module ([6d770c7](https://github.com/kwtrp-peo/viralphyl/commit/6d770c7c77c70e63424d8be90ca3138ab1461653))
+* Add module to concatenate fasta and metadata ([11a14b4](https://github.com/kwtrp-peo/viralphyl/commit/11a14b42e244b142076a6ea77a7e7cf79ca061bf))
+* Add subworkflow for global dataset ([8535011](https://github.com/kwtrp-peo/viralphyl/commit/8535011eb395c27e0c9874cca22936ffee49ff96))
+* Add user defined global dataset ([a678bec](https://github.com/kwtrp-peo/viralphyl/commit/a678bec7a64c59f2f37da42b756866ea13bcd88d))
+
 ## [0.4.1](https://github.com/kwtrp-peo/viralphyl/compare/v0.4.0...v0.4.1) (2025-04-15)
 
 
