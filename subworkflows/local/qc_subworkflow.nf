@@ -23,7 +23,7 @@ include { MULTIQC                              } from '../../modules/nf-core/mul
 workflow QUALITY_CHECK {
 
     take:
-        ch_samplesheet
+        ch_samplesheet              // [sample_id, path_to_fastq_dir]
 
     main:
         if (params.sequencing_summary) {
