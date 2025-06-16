@@ -24,10 +24,11 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 include { MOSDEPTH                             } from '../modules/nf-core/mosdepth/main'
-include { SEQKIT_CONCAT                        } from '../modules/nf-core/seqkit/concat/main'
+include { SEQKIT_SEQ                           } from '../modules/nf-core/seqkit/seq/main'
 include { MAFFT_ALIGN                          } from '../modules/nf-core/mafft/align/main'
 include { FASTTREE                             } from '../modules/nf-core/fasttree/main'
-
+include { NANOPLOT                             } from '../modules/nf-core/nanoplot/main' 
+include { MULTIQC                              } from '../modules/nf-core/multiqc/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -78,6 +79,49 @@ workflow AMPLICON_BASED {
 
     /*
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                    START OF SEQUENCING QC
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    */
+
+   if (!params.skip_qc) {
+
+        if (params.sequencing_summary) {
+            // Define reference fasta channel
+            Channel
+                .fromPath(params.sequencing_summary)
+                .set { ch_sequencing_summary }
+
+            // MODULE: Run sequencing qc using nanoplot
+            NANOPLOT (
+                ch_sequencing_summary.map { [ [id:'qc'], it ] }
+            )
+        } else {
+            // Run qc on individual samples if sequencing summary file not provided
+            NANOPLOT (
+                ch_samplesheet
+                .map {  sample_id, dir_path ->
+                        tuple( id:sample_id, file("${dir_path}/*.fastq.gz") ) 
+                    }
+            )
+
+            // Aggregate nanoplot qc report into one report
+            MULTIQC (
+                NANOPLOT.out.txt
+                .map {it[1]}
+                .collect(),
+                [], [], [], [], []
+            )
+        }
+    }
+
+    /*
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                        END OF SEQUENCING QC
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    */
+
+    /*
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         START ASSEMBLY MODULE
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     */
@@ -116,7 +160,7 @@ workflow AMPLICON_BASED {
             ch_clair3_model,                      // optional claire3 model
             ch_clair3_model_dir,                 // optional claire3 model directory
             ch_select_ref_file,                  // optional multi-reference file
-            ch_ref_fasta,                       // reference bed file - required
+            ch_ref_fasta,                       // reference fasta file - required
             ch_ref_bed,                         // reference bed file - required
             ARTIC_GUPPYPLEX.out.fastq_gz        // concatenated sample fastq file
         )
@@ -223,15 +267,15 @@ workflow AMPLICON_BASED {
                 .concat(global_fasta_ch)
                 .collect()
                 .map {
-                    tuple( [:], it)
+                    tuple( [id:"Concatenate"], it)
                 }.set {combined_fasta_ch}
-        SEQKIT_CONCAT (
+        SEQKIT_SEQ (
                     combined_fasta_ch
                 )
 
         // Align the sequences
         MAFFT_ALIGN (
-            SEQKIT_CONCAT.out.fastx,
+            SEQKIT_SEQ.out.fastx,
             [[:], []], [[:], []], [[:], []],
             [[:], []], [[:], []], []
             )
@@ -249,10 +293,6 @@ workflow AMPLICON_BASED {
             MAFFT_ALIGN.out.fas,                                // Aligned sequences
             PHYLO_COMBINE_TSVS.out.tsv.map{ [[:], it] }         // metadata in tsv
         )
-
-        // FASTTREE.out.phylogeny.map{ [[:], it] }.view()                             // tree file in newick
-        //     MAFFT_ALIGN.out.fas.view()                                // Aligned sequences
-        //     PHYLO_COMBINE_TSVS.out.tsv.map{ [[:], it] }view()                         // metadata in tsv
     }
 
     /*

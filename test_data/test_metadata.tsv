@@ -1,0 +1,4 @@
+sequence_run	barcode_num	sample_id	collection_date	location	region
+run1	barcode04	SMP004	2021-10-07	Kilifi	Africa
+run1	barcode02	SMP002	2021-09-09	Kilifi	Africa
+run1	barcode71	SMP071	2023-11-22	Kilifi	Africa
