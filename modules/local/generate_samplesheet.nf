@@ -4,8 +4,8 @@ process GENERATE_SAMPLESHEET {
     label 'error_ignore'
 
     container "${workflow.containerEngine == 'singularity' || workflow.containerEngine == 'apptainer' ? 
-    'docker://samordil/artic-multipurpose:1.2.0' : 
-    'docker.io/samordil/artic-multipurpose:1.2.0'}"
+    'docker://samordil/artic-multipurpose:1.2.1' : 
+    'docker.io/samordil/artic-multipurpose:1.2.1'}"
 
     input:
         path fastq_dir
