@@ -24,8 +24,15 @@
      workflows use the "tube map" design for that. See https://nf-co.re/docs/contributing/design_guidelines#examples for examples.   -->
 <!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline -->
 
+The pipeline supports two main workflows:
+
+- **Amplicon-based sequencing analysis**
+- **Metagenomic sequencing analysis**
+
+Amplicon Workflow
+
 1. Sample sheet and metadata prep ( [`custom python script`](https://www.python.org/) )
-2. Sequencing QC ( [`toulligQC`](https://github.com/GenomiqueENS/toulligQC) )
+2. Sequencing QC ( [`NanoPlot`](https://github.com/wdecoster/NanoPlot) )
 3. Whole genome assembly
    - Filter and aggregate demultiplexed reads from MinKNOW/Guppy ( [artic gupplylex](https://artic.readthedocs.io/en/latest/commands/) )
    - Align reads, call variants, and produce a consensus sequence ( [artic minion](https://artic.readthedocs.io/en/latest/commands/) )
@@ -36,6 +43,27 @@
    - maximum likelihood dating and ancestral sequence inference( [treetime](https://github.com/neherlab/treetime) )
    - Refine global phylogeny and create a JSON file ( [augur refine, trait and export](https://docs.nextstrain.org/projects/augur/en/stable/) )
    - Display global phylogenetic tree interactively ( [auspice](https://auspice.us/) )
+
+
+Metagenomics workflow:
+
+1. Sample sheet and metadata prep ( [`custom python script`](https://www.python.org/) )
+2. Sequencing QC ( [`NanoPlot`](https://github.com/wdecoster/NanoPlot) )
+3. Raw Read classification
+   - Adapter trimming ( [`porechop_abi`](https://github.com/bonsai-team/Porechop_ABI) )
+   - Host (Human) reads removal ( [`minimap2`](https://github.com/lh3/minimap2) and [`samtools`](https://github.com/samtools/samtools) )
+   - classification using [`mash`](https://github.com/marbl/Mash) or [`kraken2`](https://github.com/DerrickWood/kraken2)
+   - Classification report generation [`python script`] 
+4. Read assembly
+   Extraction of classified reads ( [`bash script`]() )
+   -  De novo
+      - Genome assembly ([`flye`](https://github.com/mikolmogorov/Flye) )
+      - Assembly quality assessement ( [`quast`](https://github.com/ablab/quast) )
+      - Blasting the contigs ( [`blast`](https://github.com/enormandeau/ncbi_blast_tutorial) )
+      - Consesus generation ( [`minimap2`](https://github.com/lh3/minimap2) and [`samtools`](https://github.com/samtools/samtools) )
+   - Reference-based
+      - Reference download ([`efetch`]() )
+      - Consesus generation ( [`minimap2`](https://github.com/lh3/minimap2) and [`samtools`](https://github.com/samtools/samtools) )
 
 ## Usage
 
