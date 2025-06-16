@@ -67,6 +67,7 @@ def showHelp() {
     --------------
         --skip_assembly         Boolean: If set, skips the genome assembly step (default: false)
         --skip_qc               Boolean: If set, skips the quality check step from the ont sequencing summary file (default: true)
+        --skip_classification   Boolean: If set, skips the metagenomic classification step (default: false)
 
     Assembly Step Parameters:
     -------------------------
