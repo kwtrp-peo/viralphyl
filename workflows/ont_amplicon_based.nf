@@ -3,7 +3,8 @@
     IMPORT LOCAL MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
- include { GENERATE_SAMPLESHEET                 } from '../modules/local/generate_samplesheet'
+ include { PREPARE_SAMPLESHEET                  } from '../subworkflows/local/samplesheet_subworkflow'
+ include { QUALITY_CHECK                        } from '../subworkflows/local/qc_subworkflow'
  include { ARTIC_GUPPYPLEX                      } from '../modules/local/artic_guppyplex'
  include { ARTIC_MINION                         } from '../modules/local/artic_minion'
  include { COLLAPSE_PRIMER_BED                  } from '../modules/local/collapse_primer_bed'
@@ -16,24 +17,19 @@
  include { PHYLO_COMBINE_TSVS                   } from '../modules/local/phylo_combine_tsv'
  include { AUGUR_TRANSFORM                      } from '../subworkflows/local/augur_transformation'
 
-
-
  /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    IMPORT LOCAL MODULES / SUBWORKFLOWS / FUNCTIONS
+    IMPORT NF-CORE MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 include { MOSDEPTH                             } from '../modules/nf-core/mosdepth/main'
 include { SEQKIT_SEQ                           } from '../modules/nf-core/seqkit/seq/main'
 include { MAFFT_ALIGN                          } from '../modules/nf-core/mafft/align/main'
 include { FASTTREE                             } from '../modules/nf-core/fasttree/main'
-include { NANOPLOT                             } from '../modules/nf-core/nanoplot/main' 
-include { MULTIQC                              } from '../modules/nf-core/multiqc/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
-    // medaka_model_ch             = Channel.value("${params.medaka_model}")
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -51,31 +47,15 @@ workflow AMPLICON_BASED {
     */
 
     if (!params.skip_samplesheet_generation) {
-    
-        // Define fastq_pass directory channel
-            Channel                                                     // Get raw fastq directory
-                .fromPath(params.fastq_dir, type: 'dir', maxDepth: 1)
-                .set { ch_fastq_data_dir }
-
-        // Define input channel for an optional tsv metadata file
-            if (params.metadata_tsv) { ch_metadata_tsv = file(params.metadata_tsv) } else { ch_metadata_tsv = [] }
-
-
-        // MODULE: Run bin/viraphly_samplesheet_generator.py to generate samplesheet
-            GENERATE_SAMPLESHEET (
-                ch_fastq_data_dir,               // raw reads directory channel
-                ch_metadata_tsv                  // tsv metadata channel (can be an empty channel)
-            )
-            GENERATE_SAMPLESHEET.out.samplesheet
-                .splitCsv(header:true)
-                .map { row-> tuple(row.strain_id, file(row.fastq_dir)) }
-                .set { ch_samplesheet }
+        // Generate samplesheet using fastq dir and an optional metadata file
+        PREPARE_SAMPLESHEET()
     }
     /*
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                         END OF SAMPLESHEET GENERATION
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     */
+
 
     /*
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -84,34 +64,10 @@ workflow AMPLICON_BASED {
     */
 
    if (!params.skip_qc) {
-
-        if (params.sequencing_summary) {
-            // Define reference fasta channel
-            Channel
-                .fromPath(params.sequencing_summary)
-                .set { ch_sequencing_summary }
-
-            // MODULE: Run sequencing qc using nanoplot
-            NANOPLOT (
-                ch_sequencing_summary.map { [ [id:'qc'], it ] }
-            )
-        } else {
-            // Run qc on individual samples if sequencing summary file not provided
-            NANOPLOT (
-                ch_samplesheet
-                .map {  sample_id, dir_path ->
-                        tuple( id:sample_id, file("${dir_path}/*.fastq.gz") ) 
-                    }
-            )
-
-            // Aggregate nanoplot qc report into one report
-            MULTIQC (
-                NANOPLOT.out.txt
-                .map {it[1]}
-                .collect(),
-                [], [], [], [], []
-            )
-        }
+        // Run qc subworkflow
+        QUALITY_CHECK (
+            PREPARE_SAMPLESHEET.out.samplesheet_ch
+        )
     }
 
     /*
@@ -119,6 +75,7 @@ workflow AMPLICON_BASED {
                         END OF SEQUENCING QC
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     */
+
 
     /*
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -152,7 +109,7 @@ workflow AMPLICON_BASED {
 
         // MODULE: Run artic guppyplex
         ARTIC_GUPPYPLEX (
-            ch_samplesheet
+            PREPARE_SAMPLESHEET.out.samplesheet_ch
         )
 
         // MODULE: Run artic minion
@@ -205,7 +162,7 @@ workflow AMPLICON_BASED {
 
         // Concatenate all tsv channels then collect into a single channel
         AGGREGATE_ASSEMBLY_TSVS {
-            GENERATE_SAMPLESHEET.out.samplesheet
+            PREPARE_SAMPLESHEET.out.raw_samplesheet_csv
                 .concat( GET_ASSEMBLY_STATS.out.tsv, ch_genotypes )
                 .collect()
         }
