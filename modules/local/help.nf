@@ -47,13 +47,14 @@ def showHelp() {
                                 --------------------------------------------
 
         --multi_ref_file       (Optional) Path to a FASTA MSA reference file. See the "Artic MinION Parameters" section for details.  
+        --sequencing_summary   (Optional) Path to ont sequencing summary file generated after Nanopore run completion.
 
 
     Input Options:
     --------------
         --viral_taxon           String: Select from ["hMPV", "hRV", "hRSVA", "hRSVB", "CA", "CB"] (default: "hMPV").
         --viral_host            String: Host (default: human)  
-        --method                Analysis method to use: "amplicon" or "metagenomics" (default: "amplicon").
+        --protocol                Analysis protocol to use: "amplicon" or "metagenomics" (default: "amplicon").
 
 
     Output Options:
@@ -65,8 +66,7 @@ def showHelp() {
     Module options
     --------------
         --skip_assembly         Boolean: If set, skips the genome assembly step (default: false)
-        --skip_qc               Boolean: If set, skips the quality check step for FASTQ files (default: true)
-
+        --skip_qc               Boolean: If set, skips the quality check step from the ont sequencing summary file (default: true)
 
     Assembly Step Parameters:
     -------------------------
@@ -91,7 +91,7 @@ def showHelp() {
         --min_depth             Minimum coverage required for a position to be included in the consensus sequence (default: 20)
         --sequence_threshold    Min coverage cutoff for tree construction (0.0-1.0, default: 0.7)
 
-        Reference FASTA and BED file (Required if --method="amplicon"):
+        Reference FASTA and BED file (Required if --protocol="amplicon"):
         --------------------------------------------------------------- 
         --ref_fasta             Reference FASTA sequence for the scheme (required for amplicon mode).
         --ref_bed               BED file containing primer scheme (required for amplicon mode).

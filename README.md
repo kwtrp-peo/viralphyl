@@ -9,7 +9,7 @@
 
 ## Introduction
 
-**kwtrp-peo/viralphyl** is a bioinformatics pipeline designed for the assembly and phylogenetic analysis of viral samples, supporting both linear (hRSV, hMPV, and Coxsackievirus) RNA and linear (HBV) DNA. The pipeline allows for the use of one or multiple reference sequences and takes FASTQ files as input, alongside an optional metadata file. It performs quality control (QC), trimming, and alignment, and produces an extensive QC report, consensus sequences, and a phylogenetic tree. The pipeline is built on [Nextflow](https://www.nextflow.io) and utilizes containerization via [nf-core/modules](https://github.com/nf-core/modules), supporting Docker, Singularity, or Conda.
+**kwtrp-peo/viralphyl** is a bioinformatics pipeline designed for the assembly and phylogenetic analysis of viral samples, supporting linear RNA viruses. The pipeline allows for the use of one or multiple reference sequences and takes FASTQ files as input, alongside an optional metadata file. It performs quality control (QC), trimming, and alignment, and produces an extensive QC report, consensus sequences, and a phylogenetic tree. The pipeline is built on [Nextflow](https://www.nextflow.io) and utilizes containerization via [nf-core/modules](https://github.com/nf-core/modules), supporting Docker, Singularity, or Conda.
 
 
 <!-- TODO nf-core:
@@ -50,8 +50,17 @@
 
 3. Download the pipeline and test it on a minimal dataset with a single command:
 
+   For amplicon dataset:
    ```bash
-   nextflow run kwtrp-peo/viralphyl -profile test,YOURPROFILE --outdir <outdir>
+   nextflow run kwtrp-peo/viralphyl -profile docker,test_amplicon --outdir Results
+
+   nextflow run kwtrp-peo/viralphyl -profile singularity,test_amplicon --outdir Results
+   ```
+   For metagenomics dataset:
+    ```bash
+   nextflow run kwtrp-peo/viralphyl -profile docker,test_metagenomics --outdir Results
+
+   nextflow run kwtrp-peo/viralphyl -profile singularity,test_metagenomics --outdir Results
    ```
 
    Note that some form of configuration will be needed so that Nextflow knows how to fetch the required software. This is usually done in the form of a config profile (`YOURPROFILE` in the example command above). You can chain multiple config profiles in a comma-separated string.
@@ -66,11 +75,43 @@
 > Please provide pipeline parameters via the CLI or Nextflow `-params-file` option. Custom config files including those provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_;
 > see [docs](https://nf-co.re/usage/configuration#custom-configuration-files).
   <!-- TODO nf-core: update the following command to include all required parameters for a minimal example -->
-  ```bash
-   nextflow run kwtrp-peo/viralphyl \
-      -profile YOURPROFILE \
-      --outdir <outdir>
-   ```
+
+To analyze nanopore amplicon dataset, use:
+
+```bash
+nextflow run kwtrp-peo/viralphyl \
+   --fastq_dir <DATA_DIR> \
+   --ref_bed primer_scheme.bed \
+   --ref_fasta primer_scheme_ref.fasta \
+   --multi_ref_file  msa_references.fasta \
+   --metadata_tsv <METADATA.tsv> \
+   --protocol nanopore \
+   --viral_taxon <TAXON_NAME> \
+   --outdir <OUTDIR> \
+   -profile <docker/singularity/podman/conda/institute>
+```
+
+To analyze nanopore metagenomics dataset, use:
+
+```bash
+nextflow run kwtrp-peo/viralphyl \
+   --fastq_dir <DATA_DIR>  \
+   --metadata_tsv metadata.tsv \
+   --protocol metagenomics \
+   --kraken2_db  <KRAKEN2_DB> \
+   --outdir <OUTDIR> \
+   -profile <docker/singularity/podman/conda/institute>
+```
+
+## Documentation
+
+The kwtrp-peo/viralphyl pipeline includes comprehensive documentation covering [usage](), [parameters](), and expected [outputs]().
+
+For a quick overview of the available options and parameters, you can access the command-line help by running:
+
+```bash
+nextflow run kwtrp-peo/viralphyl --help
+```
 
 ## Credits
 

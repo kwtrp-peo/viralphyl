@@ -4,7 +4,7 @@
 
 ### **1️⃣ `ORG_GITHUB_PAT`**  
 - This is a GitHub Actions secret used for automated releases via semantic-release.  
-- It wraps `GITHUB_TOKEN`, which is managed by GitHub and **expires on Sun, Jun 1 2025**.
+- It wraps `GITHUB_TOKEN`, which is managed by GitHub and **expires on Fri, Sep 5 2025**.
 
 ## 🔍 How to Rotate Secrets  
 If any secret expires or needs updating:  
