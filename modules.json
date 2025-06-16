@@ -1,32 +1,54 @@
 {
-  "name": "kwtrp-peo/viralphyl",
-  "homePage": "https://github.com/kwtrp-peo/viralphyl",
-  "repos": {
-    "https://github.com/nf-core/modules.git": {
-      "modules": {
-        "nf-core": {
-          "fasttree": {
-            "branch": "master",
-            "git_sha": "81880787133db07d9b4c1febd152c090eb8325dc",
-            "installed_by": ["modules"]
-          },
-          "mafft/align": {
-            "branch": "master",
-            "git_sha": "c7cfb9446fb3098e525089198ff232d795c20ef2",
-            "installed_by": ["modules"]
-          },
-          "mosdepth": {
-            "branch": "master",
-            "git_sha": "05954dab2ff481bcb999f24455da29a5828af08d",
-            "installed_by": ["modules"]
-          },
-          "seqkit/concat": {
-            "branch": "master",
-            "git_sha": "9fe7867a4f012db581d7bd560228ded1074eb0e5",
-            "installed_by": ["modules"]
-          }
+    "name": "kwtrp-peo/viralphyl",
+    "homePage": "https://github.com/kwtrp-peo/viralphyl",
+    "repos": {
+        "https://github.com/nf-core/modules.git": {
+            "modules": {
+                "nf-core": {
+                    "fasttree": {
+                        "branch": "master",
+                        "git_sha": "81880787133db07d9b4c1febd152c090eb8325dc",
+                        "installed_by": [
+                            "modules"
+                        ]
+                    },
+                    "mafft/align": {
+                        "branch": "master",
+                        "git_sha": "c7cfb9446fb3098e525089198ff232d795c20ef2",
+                        "installed_by": [
+                            "modules"
+                        ]
+                    },
+                    "mosdepth": {
+                        "branch": "master",
+                        "git_sha": "05954dab2ff481bcb999f24455da29a5828af08d",
+                        "installed_by": [
+                            "modules"
+                        ]
+                    },
+                    "multiqc": {
+                        "branch": "master",
+                        "git_sha": "e594e9dfaffa7572afc11bafc634984fd4cbd87b",
+                        "installed_by": [
+                            "modules"
+                        ]
+                    },
+                    "nanoplot": {
+                        "branch": "master",
+                        "git_sha": "457e8b54d1d2d3ec9208c55b66cdd573c976372f",
+                        "installed_by": [
+                            "modules"
+                        ]
+                    },
+                    "seqkit/seq": {
+                        "branch": "master",
+                        "git_sha": "9fe7867a4f012db581d7bd560228ded1074eb0e5",
+                        "installed_by": [
+                            "modules"
+                        ]
+                    }
+                }
+            }
         }
-      }
     }
-  }
 }
