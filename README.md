@@ -50,13 +50,13 @@
 
 3. Download the pipeline and test it on a minimal dataset with a single command:
 
-   On amplicon dataset:
+   For amplicon dataset:
    ```bash
    nextflow run kwtrp-peo/viralphyl -profile docker,test_amplicon --outdir Results
 
    nextflow run kwtrp-peo/viralphyl -profile singularity,test_amplicon --outdir Results
    ```
-   On metagenomics dataset:
+   For metagenomics dataset:
     ```bash
    nextflow run kwtrp-peo/viralphyl -profile docker,test_metagenomics --outdir Results
 
@@ -75,6 +75,9 @@
 > Please provide pipeline parameters via the CLI or Nextflow `-params-file` option. Custom config files including those provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_;
 > see [docs](https://nf-co.re/usage/configuration#custom-configuration-files).
   <!-- TODO nf-core: update the following command to include all required parameters for a minimal example -->
+
+To analyze nanopore amplicon dataset, use:
+
 ```bash
 nextflow run kwtrp-peo/viralphyl \
    --fastq_dir <DATA_DIR> \
@@ -88,7 +91,7 @@ nextflow run kwtrp-peo/viralphyl \
    -profile <docker/singularity/podman/conda/institute>
 ```
 
-To analyze Nanopore metagenomics dataset, use:
+To analyze nanopore metagenomics dataset, use:
 
 ```bash
 nextflow run kwtrp-peo/viralphyl \
