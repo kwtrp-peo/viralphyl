@@ -123,6 +123,15 @@ def showHelp() {
         ---------------------
         --color_by                  Column name in the TSV file to use for coloring (default: 'region')
 
+
+    Metagenomic Step Parameters:
+    ------------------------------
+        GLOBAL DATASET OPTIONS:
+        -----------------------    
+        --human_genome              Path to human genome (MMI index, .fna.gz|.fa.gz file, or URL)
+                                    Default: ftp://ftp.ncbi.nlm.nih.gov/..._genomic.fna.gz
+)
+
     Example:
     --------
         nextflow run main.nf -profile docker,local --fastq_dir raw_reads/ --outdir Results/ --metadata_tsv metadata.tsv
