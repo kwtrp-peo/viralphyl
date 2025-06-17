@@ -5,6 +5,8 @@
 */
 include { PREPARE_SAMPLESHEET            } from '../subworkflows/local/samplesheet_subworkflow'
 include { QUALITY_CHECK                  } from '../subworkflows/local/qc_subworkflow'
+include { HUMAN_GENOME_PROCESSING        } from '../subworkflows/local/process_human_genome'
+include { DEPLETE_HUMAN_READS           } from '../modules/local/deplete_human_reads'
 
 
 /*
@@ -48,14 +50,19 @@ workflow METAGENOMICS {
     if (!params.skip_classification) {
         PORECHOP_ABI (
             PREPARE_SAMPLESHEET.out.samplesheet_ch
-            .map{ sample_id, dir_path ->
+            .map { sample_id, dir_path ->
                 [ [id:sample_id], dir_path ] },
             []
         ) 
-      PORECHOP_ABI.out.reads.view()
-       
-    }
+        // PORECHOP_ABI.out.reads.view()
 
+        // Process human genome
+        HUMAN_GENOME_PROCESSING (
+            params.human_genome
+            )
+
+            HUMAN_GENOME_PROCESSING.out.indexed_HG.view()
+    }
     /*
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                         END OF RAW READS CLASSIFICATION WORKFLOW
