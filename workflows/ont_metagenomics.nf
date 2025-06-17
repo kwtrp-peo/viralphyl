@@ -6,7 +6,7 @@
 include { PREPARE_SAMPLESHEET            } from '../subworkflows/local/samplesheet_subworkflow'
 include { QUALITY_CHECK                  } from '../subworkflows/local/qc_subworkflow'
 include { HUMAN_GENOME_PROCESSING        } from '../subworkflows/local/process_human_genome'
-include { DEPLETE_HUMAN_READS           } from '../modules/local/deplete_human_reads'
+include { DEPLETE_HUMAN_READS            } from '../modules/local/deplete_human_reads'
 
 
 /*
@@ -61,7 +61,16 @@ workflow METAGENOMICS {
             params.human_genome
             )
 
-            HUMAN_GENOME_PROCESSING.out.indexed_HG.view()
+        // Deplete human reads
+        DEPLETE_HUMAN_READS (
+            PORECHOP_ABI.out.reads,                  // [[id:SMP071], fastq.gz]
+            HUMAN_GENOME_PROCESSING.out.indexed_HG   // [[], .mmi]
+        )
+
+        DEPLETE_HUMAN_READS.out.fast_gz.view()  // [[id:SMP071], fastq.gz]
+
+        // Raw read classification with mash
+
     }
     /*
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
