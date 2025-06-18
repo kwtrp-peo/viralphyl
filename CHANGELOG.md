@@ -1,3 +1,10 @@
+# [0.6.0](https://github.com/kwtrp-peo/viralphyl/compare/v0.5.0...v0.6.0) (2025-06-16)
+
+
+### Features
+
+* Add and integrate qc module ([a534c10](https://github.com/kwtrp-peo/viralphyl/commit/a534c105814df192702c392defc3abe988c23d0c))
+
 # [0.5.0](https://github.com/kwtrp-peo/viralphyl/compare/v0.4.1...v0.5.0) (2025-05-14)
 
 
