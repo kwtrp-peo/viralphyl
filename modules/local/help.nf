@@ -67,6 +67,7 @@ def showHelp() {
     --------------
         --skip_assembly         Boolean: If set, skips the genome assembly step (default: false)
         --skip_qc               Boolean: If set, skips the quality check step from the ont sequencing summary file (default: true)
+        --skip_classification   Boolean: If set, skips the metagenomic classification step (default: false)
 
     Assembly Step Parameters:
     -------------------------
@@ -121,6 +122,17 @@ def showHelp() {
         AUGUR AUSPICE OPTIONS
         ---------------------
         --color_by                  Column name in the TSV file to use for coloring (default: 'region')
+
+
+    Metagenomics Workflow Parameters:
+    ------------------------------
+        GLOBAL DATASET OPTIONS:
+        -----------------------    
+        --human_genome              Path to human genome (MMI index, .fna.gz|.fa.gz file, or URL)
+                                    Auto-downloaded from NCBI FTP if not provided.
+        --classifier                Read classifier to use: 'mash' or 'kraken2' (Default: mash)
+        --mash_db                   Mash sketch DB (.msh). Auto-downloaded if not provided.
+        --show_organisms            Number of top organisms to report per sample (Default: 3)              
 
     Example:
     --------
