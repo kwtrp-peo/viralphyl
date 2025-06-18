@@ -1,6 +1,6 @@
-process DOWNLOAD_HUMAN_GENOME {
+process DOWNLOAD_REFERENCE_DATA {
 
-    tag "Downloading Human Genome"
+    tag "${meta}"
     label 'process_low'
     label 'error_retry'
 
@@ -9,13 +9,17 @@ process DOWNLOAD_HUMAN_GENOME {
     'community.wave.seqera.io/library/wget:1.21.4--8b0fcde81c17be5e' }" 
 
     input:
-    val url
+    tuple val(meta) , val(url)
 
     output:
-    path "GRCh38.fa.gz"             , emit: gz            
+    path "$filename"             , emit: file            
 
     script:
+
+    // Set filename in Groovy
+    filename = url.tokenize('/')[-1]
+
     """
-    wget -q --continue --tries=5 -O GRCh38.fa.gz $url
+    wget -q --continue --tries=5 -O $filename $url
     """
 }
