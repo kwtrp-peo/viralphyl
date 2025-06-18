@@ -3,9 +3,9 @@ process GENERATE_SAMPLESHEET {
     label 'process_single'
     label 'error_ignore'
 
-    container "${workflow.containerEngine == 'singularity' || workflow.containerEngine == 'apptainer' ? 
-    'docker://samordil/artic-multipurpose:1.2.1' : 
-    'docker.io/samordil/artic-multipurpose:1.2.1'}"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'oras://community.wave.seqera.io/library/pip_pandas_python-dateutil:d6988e7e56918bdb' :
+        'community.wave.seqera.io/library/pip_pandas_python-dateutil:62541a5d0213d960' }"
 
     input:
         path fastq_dir

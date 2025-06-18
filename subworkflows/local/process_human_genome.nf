@@ -12,7 +12,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { DOWNLOAD_HUMAN_GENOME } from '../../modules/local/download_human_genome'
+include { DOWNLOAD_REFERENCE_DATA } from '../../modules/local/download_reference_data'
 include { MINIMAP2_INDEX        } from '../../modules/nf-core/minimap2/index/main'
 
 
@@ -44,12 +44,14 @@ workflow HUMAN_GENOME_PROCESSING {
                  input_str.startsWith('ftp://')) {
 
             // Download using url provided by default
-            DOWNLOAD_HUMAN_GENOME (
-                channel.value(genome_input)
+            DOWNLOAD_REFERENCE_DATA (
+                channel
+                    .value(genome_input)
+                    .map { [ "Human Genome", it ] }
                 )
             // Index the dowloaded genome
             MINIMAP2_INDEX (
-                DOWNLOAD_HUMAN_GENOME.out.gz
+                DOWNLOAD_REFERENCE_DATA.out.file
                 .map { [ [:], it ] }
             )
             genome_index = MINIMAP2_INDEX.out.index
