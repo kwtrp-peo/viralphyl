@@ -1,3 +1,14 @@
+# [0.7.0](https://github.com/kwtrp-peo/viralphyl/compare/v0.6.0...v0.7.0) (2025-06-18)
+
+
+### Features
+
+* Add and integrate porechop_abi module ([b0abc00](https://github.com/kwtrp-peo/viralphyl/commit/b0abc007904f7e2e72ce48a850cb9bc5ea26add9))
+* Add mash classification and summary report generation ([d8399e7](https://github.com/kwtrp-peo/viralphyl/commit/d8399e7bdf37a46378ade2722c4873cb457b12a4))
+* add module to process HG ([b52b1db](https://github.com/kwtrp-peo/viralphyl/commit/b52b1db8be8d9f5afdcf7cff6d42a660d304e6e5))
+* Decoupled samplesheet and QC modules into subworkflow ([905baa8](https://github.com/kwtrp-peo/viralphyl/commit/905baa855747f93a0384de81854ec38ae6e353d3))
+* Integrate human genome reads removal module ([fd634c0](https://github.com/kwtrp-peo/viralphyl/commit/fd634c081f846ff1a234fa3b03ce9e99164b1d1e))
+
 # [0.6.0](https://github.com/kwtrp-peo/viralphyl/compare/v0.5.0...v0.6.0) (2025-06-16)
 
 
