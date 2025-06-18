@@ -124,13 +124,15 @@ def showHelp() {
         --color_by                  Column name in the TSV file to use for coloring (default: 'region')
 
 
-    Metagenomic Step Parameters:
+    Metagenomics Workflow Parameters:
     ------------------------------
         GLOBAL DATASET OPTIONS:
         -----------------------    
         --human_genome              Path to human genome (MMI index, .fna.gz|.fa.gz file, or URL)
-                                    Default: ftp://ftp.ncbi.nlm.nih.gov/..._genomic.fna.gz
-)
+                                    Auto-downloaded from NCBI FTP if not provided.
+        --classifier                Read classifier to use: 'mash' or 'kraken2' (Default: mash)
+        --mash_db                   Mash sketch DB (.msh). Auto-downloaded if not provided.
+        --show_organisms            Number of top organisms to report per sample (Default: 3)              
 
     Example:
     --------
