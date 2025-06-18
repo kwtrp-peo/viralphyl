@@ -3,38 +3,98 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
- include { GENERATE_SAMPLESHEET                 } from '../modules/local/generate_samplesheet'
+include { PREPARE_SAMPLESHEET            } from '../subworkflows/local/samplesheet_subworkflow'
+include { QUALITY_CHECK                  } from '../subworkflows/local/qc_subworkflow'
+include { HUMAN_GENOME_PROCESSING        } from '../subworkflows/local/process_human_genome'
+include { DEPLETE_HUMAN_READS            } from '../modules/local/deplete_human_reads'
+include { MASH_WORKFLOW                  } from '../subworkflows/local/mash_classification_sub_workflow'
+
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    IMPORT NF-CORE MODULES / SUBWORKFLOWS / FUNCTIONS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+include { PORECHOP_ABI                         } from '../modules/nf-core/porechop/abi/main' 
+
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-
 workflow METAGENOMICS {
+    /*
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                    SAMPLESHEET GENERATION SUBWORKFLOW
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    */
+    PREPARE_SAMPLESHEET()
+    
+     /*
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                    QUALITY CHECK SUBWORKFLOW
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    */
+    if (!params.skip_qc) { 
+        QUALITY_CHECK (
+            PREPARE_SAMPLESHEET.out.samplesheet_ch    // [sample_id, path_to_fastq_dir]
+        )
+    }
+ 
+    /*
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                    START OF RAW READS CLASSIFICATION WORKFLOW
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    */
+    // Module adopter trimming
+    if (!params.skip_classification) {
 
-    // Define input channel for an optional tsv metadata file
-    if (params.metadata_tsv) { ch_metadata_tsv = file(params.metadata_tsv) } else { ch_metadata_tsv = [] }
+        // Trim sequencing adapters
+        PORECHOP_ABI (
+            PREPARE_SAMPLESHEET.out.samplesheet_ch
+            .map { sample_id, dir_path ->
+                [ [id:sample_id], dir_path ]
+            },
+            []
+        ) 
 
+        // Process human genome
+        HUMAN_GENOME_PROCESSING (
+            params.human_genome
+        )
 
-    // Define fastq_pass directory channel
-    Channel                                                     // Get raw fastq directory
-        .fromPath(params.fastq_dir, type: 'dir', maxDepth: 1)
-        .set { ch_fastq_data_dir }
+        // Deplete human reads
+        DEPLETE_HUMAN_READS (
+            PORECHOP_ABI.out.reads,                  
+            HUMAN_GENOME_PROCESSING.out.indexed_HG   
+        )
 
-    // MODULE: Run bin/viraphly_samplesheet_generator.py to generate samplesheet
-    GENERATE_SAMPLESHEET (
-        ch_fastq_data_dir,               // raw reads directory channel
-        ch_metadata_tsv                  // tsv metadata channel (can be an empty channel)
-    )
-     GENERATE_SAMPLESHEET.out.samplesheet
-        .splitCsv(header:true)
-        .map { row-> tuple(row.strain_id, file(row.fastq_dir)) }
-        .set { ch_samplesheet }
+        // Raw read classification
+        switch (params.classifier.toLowerCase()) {
+            case 'kraken2':
+                KRAKEN2_WORKFLOW(
+                    DEPLETE_HUMAN_READS.out.fast_gz
+                )
+                break
+            case 'mash':
+                MASH_WORKFLOW (
+                    DEPLETE_HUMAN_READS.out.fast_gz,
+                    params.mash_db
+                )
+                break
+            default:
+                log.error "ERROR: Invalid --classifier '${params.classifier}'. Choose either 'mash' or 'kraken2'."
+                exit(1)
+        }
+    }
+
+    /*
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                        END OF RAW READS CLASSIFICATION WORKFLOW
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    */
+    
+
 }
-
-/*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    THE END
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-*/
+    
