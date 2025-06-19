@@ -8,6 +8,7 @@ include { QUALITY_CHECK                  } from '../subworkflows/local/qc_subwor
 include { HUMAN_GENOME_PROCESSING        } from '../subworkflows/local/process_human_genome'
 include { DEPLETE_HUMAN_READS            } from '../modules/local/deplete_human_reads'
 include { MASH_WORKFLOW                  } from '../subworkflows/local/mash_classification_sub_workflow'
+include { KRAKEN2_WORKFLOW               } from '../subworkflows/local/kraken2_classification_workflow'
 
 
 /*
@@ -15,7 +16,7 @@ include { MASH_WORKFLOW                  } from '../subworkflows/local/mash_clas
     IMPORT NF-CORE MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { PORECHOP_ABI                         } from '../modules/nf-core/porechop/abi/main' 
+include { PORECHOP_ABI                   } from '../modules/nf-core/porechop/abi/main' 
 
 
 /*
@@ -73,9 +74,12 @@ workflow METAGENOMICS {
         // Raw read classification
         switch (params.classifier.toLowerCase()) {
             case 'kraken2':
-                KRAKEN2_WORKFLOW(
-                    DEPLETE_HUMAN_READS.out.fast_gz
+                KRAKEN2_WORKFLOW (
+                    DEPLETE_HUMAN_READS.out.fast_gz,
+                    params.kraken2_db
                 )
+
+                KRAKEN2_WORKFLOW.out.db.view()
                 break
             case 'mash':
                 MASH_WORKFLOW (

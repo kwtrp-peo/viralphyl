@@ -10,6 +10,11 @@
             "git_sha": "81880787133db07d9b4c1febd152c090eb8325dc",
             "installed_by": ["modules"]
           },
+          "kraken2/kraken2": {
+            "branch": "master",
+            "git_sha": "20b042e352fc47ab6dab717a622253e96429e887",
+            "installed_by": ["modules"]
+          },
           "mafft/align": {
             "branch": "master",
             "git_sha": "c7cfb9446fb3098e525089198ff232d795c20ef2",
