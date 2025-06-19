@@ -1,0 +1,97 @@
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    PROCESS MASH DATABASE
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Subworkflow to provide a valid kraken2 database:
+    - Uses provided file (local or remote)
+    - Downloads default kraken2 RefSeq DB if no input is given
+
+    Input:  Optional kraken2 path or URL
+    Output: Kraken2 file (.db)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
+include { KRAKEN2_KRAKEN2               } from '../../modules/nf-core/kraken2/kraken2/main'
+include { DOWNLOAD_REFERENCE_DATA       } from '../../modules/local/download_reference_data'
+include { EXTRACT_TARBALL               } from '../../modules/local/extract_tarball'
+
+
+workflow KRAKEN2_WORKFLOW {
+
+    take:
+        query                        // [[id:sampleid], fastq]
+        kraken2_db                  // [ path ]
+
+    main:
+        def kraken2_db_str = kraken2_db.toString()
+
+        if (kraken2_db_str.endsWith('.tar.gz')) {
+            if (kraken2_db_str.startsWith('http://') ||
+                kraken2_db_str.startsWith('https://') ||
+                kraken2_db_str.startsWith('ftp://')) {
+                
+                DOWNLOAD_REFERENCE_DATA( 
+                    // Download existing mash sketch/db                   
+                    channel
+                        .value(kraken2_db)
+                        .map { [ "kraken database", it ] }
+                )
+               
+               EXTRACT_TARBALL (
+                    DOWNLOAD_REFERENCE_DATA.out.file
+                    .map { [ [id:"Extract kraken db"], it ] }
+               )
+               
+               EXTRACT_TARBALL.out.kraken_db_dir
+               .set { kraken2_db }                  
+
+            } else {   
+                 // Use a provided tar.gz file                                    
+                Channel
+                .fromPath(kraken2_db)
+                .map { [ [id:"Extract kraken db"], it ] }
+                .set { ch_kraken_tar_gz }
+
+                EXTRACT_TARBALL (
+                    ch_kraken_tar_gz
+                )
+                
+               EXTRACT_TARBALL.out.kraken_db_dir
+               .set { kraken2_db }  
+            }
+        }
+        else if (file(kraken2_db_str).isDirectory()) {
+                // Add support for directory
+            Channel
+                .value(kraken2_db)
+                .set { kraken2_db }
+
+        } else {
+            error """
+            Unsupported kraken2 reference format: ${kraken2_db_str}
+            Supported:
+              - Kraken2 database folder
+              - Kraken2 .tar.gz archive (local or remote)
+            """
+        }
+
+        // Now use mash database to classify reads
+        KRAKEN2_KRAKEN2 (
+            query.map { meta, fastq_gz ->
+                meta.single_end = true
+                [ meta, fastq_gz ]
+            },
+            kraken2_db,             // [ kraken2_dir ]
+            true,
+            true
+        )
+        KRAKEN2_KRAKEN2.out.classified_reads_fastq.set {fastq}
+        KRAKEN2_KRAKEN2.out.classified_reads_assignment.set {kraken_txt_file}
+        KRAKEN2_KRAKEN2.out.report.set {classfication_report}
+
+    emit:
+        db                  = kraken2_db
+        report              = classfication_report
+        classified_fastq    = fastq
+        kraken2_output_txt  = kraken_txt_file
+}
