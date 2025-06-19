@@ -20,8 +20,8 @@ include { MASH_REPORT_SUMMARY           } from '../../modules/local/mash_report_
 workflow MASH_WORKFLOW {
 
     take:
-        query
-        mash_sketch
+        query             // [[id:sampleid], fastq]
+        mash_sketch       // [ path_string ]
 
     main:
         def mash_sketch_str = mash_sketch.toString()
@@ -82,8 +82,8 @@ workflow MASH_WORKFLOW {
 
         // Now use mash database to classify reads
         MASH_SCREEN (
-            query,
-            mash_db
+            query,                  // [[id:sampleid], fastq]
+            mash_db                 // [ [], .msh ]
         )
 
         classfication_report   =   MASH_SCREEN.out.screen  
@@ -98,7 +98,7 @@ workflow MASH_WORKFLOW {
 
 
     emit:
-        db               = mash_db
-        report           = classfication_report
-        mash_summary     = final_report
+        db               = mash_db                  // [ [], .msh ]
+        report           = classfication_report     // [ [id], .screen ]
+        mash_summary     = final_report             // [ .tsv ]
 }
