@@ -132,6 +132,7 @@ def showHelp() {
                                     Auto-downloaded from NCBI FTP if not provided.
         --classifier                Read classifier to use: 'mash' or 'kraken2' (Default: mash)
         --mash_db                   Mash sketch DB (.msh). Auto-downloaded if not provided.
+        --kraken2_db                Kraken2 DB. Auto-downloaded if not provided.
         --show_organisms            Number of top organisms to report per sample (Default: 3)              
 
     Example:
