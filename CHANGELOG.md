@@ -1,3 +1,13 @@
+# [0.8.0](https://github.com/kwtrp-peo/viralphyl/compare/v0.7.0...v0.8.0) (2025-06-20)
+
+
+### Features
+
+* Add module to generate Kraken visualization ([f0dc063](https://github.com/kwtrp-peo/viralphyl/commit/f0dc063df46e0f1c49c76c0c7a55fa181fd17aa0))
+* Add module to summarize Kraken2 output report ([949296f](https://github.com/kwtrp-peo/viralphyl/commit/949296f68767634efe719c3f02b091acb62cacde))
+* Add script for kraken2 database download and creation ([effd4e6](https://github.com/kwtrp-peo/viralphyl/commit/effd4e628832e9c4a94625a7c18f534ec582f536))
+* Integrate kraken2 module ([62dd54a](https://github.com/kwtrp-peo/viralphyl/commit/62dd54af9a5ac36e6db2c8a43fb9486a406a4704))
+
 # [0.7.0](https://github.com/kwtrp-peo/viralphyl/compare/v0.6.0...v0.7.0) (2025-06-18)
 
 
