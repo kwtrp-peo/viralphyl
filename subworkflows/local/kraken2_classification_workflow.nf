@@ -11,10 +11,13 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { KRAKEN2_KRAKEN2               } from '../../modules/nf-core/kraken2/kraken2/main'
-include { DOWNLOAD_REFERENCE_DATA       } from '../../modules/local/download_reference_data'
-include { EXTRACT_TARBALL               } from '../../modules/local/extract_tarball'
-include { GENERATE_KRAKEN2_SUMMARY      } from '../../modules/local/generate_kraken2_summary'
+include { KRAKEN2_KRAKEN2                   } from '../../modules/nf-core/kraken2/kraken2/main'
+include { DOWNLOAD_REFERENCE_DATA           } from '../../modules/local/download_reference_data'
+include { EXTRACT_TARBALL                   } from '../../modules/local/extract_tarball'
+include { GENERATE_KRAKEN2_SUMMARY          } from '../../modules/local/generate_kraken2_summary'
+include { GENERATE_KRAKEN2_SUMMARY_HTML     } from '../../modules/local/generate_kraken2_summary_html'
+
+
 
 workflow KRAKEN2_WORKFLOW {
 
@@ -92,11 +95,14 @@ workflow KRAKEN2_WORKFLOW {
         // Generate Kraken summary report in json and tsv
 
         GENERATE_KRAKEN2_SUMMARY (
-            KRAKEN2_KRAKEN2.out.classified_reads_assignment
+            KRAKEN2_KRAKEN2.out.classified_reads_assignment  // [ [id, paired], kraken2_output ]
         )
 
-        GENERATE_KRAKEN2_SUMMARY.out.json.view()
-        GENERATE_KRAKEN2_SUMMARY.out.tsv.view()
+        // Generate hmtl dashboard to visualize the kraken2 summary reports
+
+        GENERATE_KRAKEN2_SUMMARY_HTML (
+            GENERATE_KRAKEN2_SUMMARY.out.json.collect()         //    [x, y, z]
+        )
 
     emit:
         db                  = kraken2_db
