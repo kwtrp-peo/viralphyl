@@ -78,8 +78,6 @@ workflow METAGENOMICS {
                     DEPLETE_HUMAN_READS.out.fast_gz,
                     params.kraken2_db
                 )
-
-                KRAKEN2_WORKFLOW.out.db.view()
                 break
             case 'mash':
                 MASH_WORKFLOW (

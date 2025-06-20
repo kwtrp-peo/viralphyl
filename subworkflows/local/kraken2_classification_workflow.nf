@@ -14,7 +14,7 @@
 include { KRAKEN2_KRAKEN2               } from '../../modules/nf-core/kraken2/kraken2/main'
 include { DOWNLOAD_REFERENCE_DATA       } from '../../modules/local/download_reference_data'
 include { EXTRACT_TARBALL               } from '../../modules/local/extract_tarball'
-
+include { GENERATE_KRAKEN2_SUMMARY      } from '../../modules/local/generate_kraken2_summary'
 
 workflow KRAKEN2_WORKFLOW {
 
@@ -88,6 +88,15 @@ workflow KRAKEN2_WORKFLOW {
         KRAKEN2_KRAKEN2.out.classified_reads_fastq.set {fastq}
         KRAKEN2_KRAKEN2.out.classified_reads_assignment.set {kraken_txt_file}
         KRAKEN2_KRAKEN2.out.report.set {classfication_report}
+
+        // Generate Kraken summary report in json and tsv
+
+        GENERATE_KRAKEN2_SUMMARY (
+            KRAKEN2_KRAKEN2.out.classified_reads_assignment
+        )
+
+        GENERATE_KRAKEN2_SUMMARY.out.json.view()
+        GENERATE_KRAKEN2_SUMMARY.out.tsv.view()
 
     emit:
         db                  = kraken2_db
