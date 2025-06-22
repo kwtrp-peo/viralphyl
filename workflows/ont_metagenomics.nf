@@ -9,6 +9,7 @@ include { HUMAN_GENOME_PROCESSING        } from '../subworkflows/local/process_h
 include { DEPLETE_HUMAN_READS            } from '../modules/local/deplete_human_reads'
 include { MASH_WORKFLOW                  } from '../subworkflows/local/mash_classification_sub_workflow'
 include { KRAKEN2_WORKFLOW               } from '../subworkflows/local/kraken2_classification_workflow'
+include { TAXONKIT_NAME2TAXID            } from '../modules/nf-core/taxonkit/name2taxid/main'
 
 
 /*
@@ -90,6 +91,42 @@ workflow METAGENOMICS {
                 exit(1)
         }
     }
+
+    // Assembly module
+    if (!params.skip_assembly) {
+
+        channel
+        .fromPath(params.target_pathogen)
+        .map { file -> 
+            [
+                [id: 'pathogen_list'],  // meta
+                [],
+                file                    // names_txt
+            ]
+        }.set {pathogenInput}
+    
+    TAXONKIT_NAME2TAXID (
+        pathogenInput,          // tuple val(meta), val(name), path(names_txt)
+        KRAKEN2_WORKFLOW.out.db // path taxdb
+    )
+
+    // Get the taxids as a list of space separated integers
+    TAXONKIT_NAME2TAXID.out.tsv
+    .map { meta, tsv_file ->                    // Destructure tuple
+       tsv_file                             
+        .readLines()                            // Read lines from file
+        .collect {
+            def cols = it.split('\t')           // Split line into columns
+            cols.size() > 1 ? cols[1] : null    // Safely access 2nd column
+        } 
+        .findAll { it }                     // Remove empty strings or null
+        .collect { it.toInteger() }         // convert to integer
+        .join(' ')                          // Join into space-separated string
+    }.set {taxids}                          // 34 67 89 89
+
+    // taxids.view()
+        
+}
 
     /*
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
