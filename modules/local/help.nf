@@ -65,10 +65,11 @@ def showHelp() {
 
     Module options
     --------------
-        --skip_assembly         Boolean: If set, skips the genome assembly step (default: false)
-        --skip_qc               Boolean: If set, skips the quality check step from the ont sequencing summary file (default: true)
-        --skip_classification   Boolean: If set, skips the metagenomic classification step (default: false)
-
+        --skip_assembly         Boolean: Skip the assembly step for the selected protocol (nanopore or metagenomic) (default: false)
+        --skip_qc               Boolean: If set, skips the quality check step for the selected protocol (default: false)
+        --skip_phylogenetics    Boolean: If set, skips the nanopore phylogenetics module (default: false)
+        --skip_classification   Boolean: If set, skips the metagenomic classification module (default: false)
+        
     Assembly Step Parameters:
     -------------------------
         Artic Guppyplex Parameters:
@@ -132,9 +133,10 @@ def showHelp() {
                                     Auto-downloaded from NCBI FTP if not provided.
         --classifier                Read classifier to use: 'mash' or 'kraken2' (Default: mash)
         --mash_db                   Mash sketch DB (.msh). Auto-downloaded if not provided.
-        --kraken2_db                Kraken2 DB. Auto-downloaded if not provided.
-        --show_organisms            Number of top organisms to report per sample (Default: 3)              
-
+        --kraken2_db                Kraken2 DB, a link or a db directory. Auto-downloaded if not provided.
+        --show_organisms            Number of top organisms to report per sample from the mash classifier (Default: 3) 
+        --target_pathogen           Path to a text file with pathogen(s) (one per line) for genome assembly.
+                                    Use a single space between words in multi-word names.
     Example:
     --------
         nextflow run main.nf -profile docker,local --fastq_dir raw_reads/ --outdir Results/ --metadata_tsv metadata.tsv
