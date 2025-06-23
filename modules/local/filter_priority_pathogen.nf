@@ -1,5 +1,5 @@
-process GENERATE_KRAKEN2_SUMMARY {
-    tag "summarise ${meta.id}"
+process FILTER_PRIORITY_PATHOGENS {
+    tag "Filtering pathogens from ${sample_id}"
     label 'process_single'
     label 'error_ignore'
 
@@ -8,20 +8,19 @@ process GENERATE_KRAKEN2_SUMMARY {
         'community.wave.seqera.io/library/pip_pandas_python-dateutil:62541a5d0213d960' }"
 
     input:
-        tuple val(meta), path(kraken_output)
+        tuple val(sample_id), path(kraken_summary_tsv)
+        each path(taxonki_name2taxid_tsv)
 
     output:
-        path "${meta.id}.json"                          , emit: json
-        tuple val(meta.id), path("${meta.id}.tsv")      , emit: tsv
+        tuple val(sample_id), path("${sample_id}.priority.tsv")         , emit: tsv
 
 
     script:     // This script is bundled with the pipeline, in kwtrp-peo/viralphyl/bin/
 
     """
-    kraken_summary.py \\
-        --kraken_files $kraken_output \\
-        --sample ${meta.id} \\
-        --json ${meta.id}.json \\
-        --tsv ${meta.id}.tsv
+    filter_priority_pathogen.py \\
+        --kraken $kraken_summary_tsv \\
+        --taxonkit $taxonki_name2taxid_tsv \\
+        --output  ${sample_id}.priority.tsv
     """
 }
