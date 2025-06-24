@@ -137,6 +137,8 @@ def showHelp() {
         --show_organisms            Number of top organisms to report per sample from the mash classifier (Default: 3) 
         --target_pathogen           Path to a text file with pathogen(s) (one per line) for genome assembly.
                                     Use a single space between words in multi-word names.
+        --min_reads_per_taxon       INT   Minimum reads required per taxon (species/strain) to qualify for assembly.
+
     Example:
     --------
         nextflow run main.nf -profile docker,local --fastq_dir raw_reads/ --outdir Results/ --metadata_tsv metadata.tsv
