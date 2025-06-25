@@ -12,7 +12,7 @@ include { KRAKEN2_WORKFLOW               } from '../subworkflows/local/kraken2_c
 include { TAXONKIT_NAME2TAXID            } from '../modules/nf-core/taxonkit/name2taxid/main'
 include { FILTER_PRIORITY_PATHOGENS      } from '../modules/local/filter_priority_pathogen'
 include { KRAKENTOOLS_EXTRACTKRAKENREADS } from '../modules/local/extract_kraken_reads'
-
+include { FETCH_FEFERENCE_FASTA          } from '../modules/local/fetch_reference_from_taxid'
 
 
 /*
@@ -160,6 +160,38 @@ workflow METAGENOMICS {
         KRAKENTOOLS_EXTRACTKRAKENREADS (
             extract_kraken_ch
         )
+
+        // Get the unique taxids for references downlod through accessions
+        taxid_ch.unique{ it[1] }               // remove duplicate taxids
+            .map{ sample_id, taxid -> taxid }
+            .set { unique_taxid_ch }
+
+        KRAKEN2_WORKFLOW.out.db
+            .map { db_dir -> file("${db_dir}/seqid2taxid.map") }  
+            .set { taxid_map_ch }
+
+        FETCH_FEFERENCE_FASTA (
+           unique_taxid_ch,         // [ taxid ]
+           taxid_map_ch             // [ txt ]
+        )
+
+        // FETCH_FEFERENCE_FASTA.out.fasta.view()  
+        // KRAKENTOOLS_EXTRACTKRAKENREADS.out.extracted_kraken2_reads.view()      
+
+        // Prepare data for mapping
+        FETCH_FEFERENCE_FASTA.out.fasta
+        .cross( KRAKENTOOLS_EXTRACTKRAKENREADS.out.extracted_kraken2_reads )
+        .map{                   // [ [taxid, ref], [taxid, id, fastq] ]
+            [                
+                it[0][0],                          // taxid 
+                it[1][1],                         // sample id
+                it[0][1],                         // ref fasta
+                it[1][2]                         // classified_fastq_gz
+                ]
+        }.set { mapping_data }                   // [ taxid, sample_id, ref, fastq ]
+
+        mapping_data.view()
+        
 
     // Get the taxids as a list of space separated integers
     // TAXONKIT_NAME2TAXID.out.tsv
