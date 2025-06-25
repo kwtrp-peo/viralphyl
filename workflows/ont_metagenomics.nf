@@ -9,10 +9,10 @@ include { HUMAN_GENOME_PROCESSING        } from '../subworkflows/local/process_h
 include { DEPLETE_HUMAN_READS            } from '../modules/local/deplete_human_reads'
 include { MASH_WORKFLOW                  } from '../subworkflows/local/mash_classification_sub_workflow'
 include { KRAKEN2_WORKFLOW               } from '../subworkflows/local/kraken2_classification_workflow'
-include { TAXONKIT_NAME2TAXID            } from '../modules/nf-core/taxonkit/name2taxid/main'
 include { FILTER_PRIORITY_PATHOGENS      } from '../modules/local/filter_priority_pathogen'
 include { KRAKENTOOLS_EXTRACTKRAKENREADS } from '../modules/local/extract_kraken_reads'
 include { FETCH_FEFERENCE_FASTA          } from '../modules/local/fetch_reference_from_taxid'
+include { GENERATE_CONSENSUS             } from '../modules/local/generate_consensus'
 
 
 /*
@@ -21,6 +21,7 @@ include { FETCH_FEFERENCE_FASTA          } from '../modules/local/fetch_referenc
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 include { PORECHOP_ABI                   } from '../modules/nf-core/porechop/abi/main' 
+include { TAXONKIT_NAME2TAXID            } from '../modules/nf-core/taxonkit/name2taxid/main'
 
 
 /*
@@ -190,7 +191,10 @@ workflow METAGENOMICS {
                 ]
         }.set { mapping_data }                   // [ taxid, sample_id, ref, fastq ]
 
-        mapping_data.view()
+        GENERATE_CONSENSUS (
+            mapping_data                // [ taxid, sample_id, ref, fastq ]
+        )
+
         
 
     // Get the taxids as a list of space separated integers
