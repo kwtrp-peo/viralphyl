@@ -1,3 +1,14 @@
+# [0.9.0](https://github.com/kwtrp-peo/viralphyl/compare/v0.8.0...v0.9.0) (2025-07-08)
+
+
+### Features
+
+* add module for consensus generation from mapped reads ([d9adcb3](https://github.com/kwtrp-peo/viralphyl/commit/d9adcb3111b752751b135e375fcaa6c135a79a9f))
+* Add taxid extraction module ([38998e5](https://github.com/kwtrp-peo/viralphyl/commit/38998e515161261cd33dce683031fbb79d1e06b1))
+* Integrate module for ref fasta download ([6503109](https://github.com/kwtrp-peo/viralphyl/commit/6503109b2eec88f361cb94ad417741f138db4de3))
+* integrate module to extract FASTQ reads classified by taxid ([8f4f36f](https://github.com/kwtrp-peo/viralphyl/commit/8f4f36feb816d76d4be852c0ff63baa406b2a82b))
+* Integrate module to filter priority pathogens ([0bb414c](https://github.com/kwtrp-peo/viralphyl/commit/0bb414c2d06ca2f8620252239f923ff10e43b194))
+
 # [0.8.0](https://github.com/kwtrp-peo/viralphyl/compare/v0.7.0...v0.8.0) (2025-06-20)
 
 
