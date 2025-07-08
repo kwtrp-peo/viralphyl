@@ -93,20 +93,21 @@ workflow KRAKEN2_WORKFLOW {
         KRAKEN2_KRAKEN2.out.report.set {classfication_report}
 
         // Generate Kraken summary report in json and tsv
-
         GENERATE_KRAKEN2_SUMMARY (
-            KRAKEN2_KRAKEN2.out.classified_reads_assignment  // [ [id, paired], kraken2_output ]
+            kraken_txt_file  // [ [id, paired], kraken2_output ]
         )
 
-        // Generate hmtl dashboard to visualize the kraken2 summary reports
+        GENERATE_KRAKEN2_SUMMARY.out.tsv.set {kraken_summary_tsv}     // [ id, tsv ]
 
+        // Generate hmtl dashboard to visualize the kraken2 summary reports
         GENERATE_KRAKEN2_SUMMARY_HTML (
             GENERATE_KRAKEN2_SUMMARY.out.json.collect()         //    [x, y, z]
         )
 
     emit:
         db                  = kraken2_db
-        report              = classfication_report
-        classified_fastq    = fastq
-        kraken2_output_txt  = kraken_txt_file
+        report              = classfication_report       // [ [id, paired], classfication_report ]
+        classified_fastq    = fastq                      // [ [id, paired], fastq ]
+        kraken2_output_txt  = kraken_txt_file            // [ [id, paired], kraken2_output ]
+        kraken_summary      = kraken_summary_tsv         // [ id, tsv ]
 }
