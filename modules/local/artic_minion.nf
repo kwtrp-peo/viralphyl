@@ -4,12 +4,9 @@ process ARTIC_MINION {
     label 'process_high'
     label 'error_ignore'
 
-    // Fixes compatibility issues on ARM-based machines (e.g., Apple M1, M2, M3)
-    beforeScript "export DOCKER_DEFAULT_PLATFORM=linux/amd64"
-
     container "${workflow.containerEngine == 'singularity' || workflow.containerEngine == 'apptainer' ? 
-    'docker://samordil/artic-multipurpose:1.2.1' : 
-    'docker.io/samordil/artic-multipurpose:1.2.1'}"
+    'docker://samordil/fieldbio-multiref:1.0.0' : 
+    'docker.io/samordil/fieldbio-multiref:1.0.0'}"
 
     input:
     val model_str
