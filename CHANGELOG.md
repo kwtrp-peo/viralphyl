@@ -1,3 +1,11 @@
+## [0.9.1](https://github.com/kwtrp-peo/viralphyl/compare/v0.9.0...v0.9.1) (2025-07-15)
+
+
+### Bug Fixes
+
+* multiref container error on Apple silicon ([43ac971](https://github.com/kwtrp-peo/viralphyl/commit/43ac971a2908cd3d1075ca94d6801f665d55426b))
+* select the correct config based on protocol ([8d0e637](https://github.com/kwtrp-peo/viralphyl/commit/8d0e63739f356c0cf15124e3eb8dc8fe9b534e9a))
+
 # [0.9.0](https://github.com/kwtrp-peo/viralphyl/compare/v0.8.0...v0.9.0) (2025-07-08)
 
 
