@@ -2,14 +2,11 @@
 process AGGREGATE_ASSEMBLY_TSVS {
     tag "aggregate tsvs"
     label 'process_high'
-    // label 'error_ignore'
-
-    // Fixes compatibility issues on ARM-based machines (e.g., Apple M1, M2, M3)
-    beforeScript "export DOCKER_DEFAULT_PLATFORM=linux/amd64"
+    label 'error_ignore'
 
     container "${workflow.containerEngine == 'singularity' || workflow.containerEngine == 'apptainer' ? 
-    'docker://samordil/artic-multipurpose:1.2.1' : 
-    'docker.io/samordil/artic-multipurpose:1.2.1'}"
+    'docker://samordil/fieldbio-multiref:1.0.0' : 
+    'docker.io/samordil/fieldbio-multiref:1.0.0'}"
 
     input:
     path text_files
