@@ -12,7 +12,7 @@ process GET_ASSEMBLY_STATS {
 
     output:
     path "assembly_stats.tsv"                   , emit: tsv
-    path "genome_coverage.png"                  , emit: png
+    path "read_mapping.png"                  , emit: png
 
     script:
     """
@@ -20,6 +20,6 @@ process GET_ASSEMBLY_STATS {
         --tsv-files  $tsv_files\\
         --threads $task.cpus \\
         --output-tsv assembly_stats.tsv \\
-        --output-plot genome_coverage.png
+        --output-plot read_mapping.png
     """
 }
