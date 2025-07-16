@@ -1,3 +1,11 @@
+## [0.9.2](https://github.com/kwtrp-peo/viralphyl/compare/v0.9.1...v0.9.2) (2025-07-16)
+
+
+### Bug Fixes
+
+* correct parsing for amplicon and metagenomics configs ([153d2d2](https://github.com/kwtrp-peo/viralphyl/commit/153d2d2d38bab5ace45eb352d45ee554532f7536))
+* resolve incorrect rendering of amplicon plots ([e389bb0](https://github.com/kwtrp-peo/viralphyl/commit/e389bb0d3578ff66f9cb57f09729b05c86082924))
+
 ## [0.9.1](https://github.com/kwtrp-peo/viralphyl/compare/v0.9.0...v0.9.1) (2025-07-15)
 
 
