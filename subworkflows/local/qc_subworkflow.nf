@@ -1,14 +1,15 @@
-  /*
+/*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    IMPORT  MODULES / SUBWORKFLOWS / FUNCTIONS
+    IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { PREPARE_SAMPLESHEET                  } from './samplesheet_subworkflow'
-include { NANOPLOT                             } from '../../modules/nf-core/nanoplot/main' 
-include { MULTIQC                              } from '../../modules/nf-core/multiqc/main'
+include { PREPARE_SAMPLESHEET               } from './samplesheet_subworkflow'
+include { NANOPLOT                          } from '../../modules/nf-core/nanoplot/main' 
+include { MULTIQC as MULTIQC_AMP            } from '../../modules/nf-core/multiqc/main'
+include { MULTIQC as MULTIQC_META           } from '../../modules/nf-core/multiqc/main'
 
- /*
+/*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     END OF MODULE IMPORTS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -40,24 +41,38 @@ workflow QUALITY_CHECK {
             // Run qc on individual samples if sequencing summary file not provided
             NANOPLOT (
                 ch_samplesheet
-                .map {  sample_id, dir_path ->
-                        tuple( id:sample_id, file("${dir_path}/*.fastq.gz") ) 
-                    }
+                .map { sample_id, dir_path ->
+                    tuple( id:sample_id, file("${dir_path}/*.fastq.gz") ) 
+                }
             )
 
-            // Aggregate nanoplot qc report into one report
-            MULTIQC (
-                NANOPLOT.out.txt
-                .map {it[1]}
-                .collect(),
-                [], [], [], [], []
-            )
-
-            report_html = MULTIQC.out.report
+            // Aggregate nanoplot qc report into one report for amplicon
+            if (params.protocol.toLowerCase() == 'amplicon') {
+                MULTIQC_AMP (
+                    NANOPLOT.out.txt
+                    .map { it[1] }
+                    .collect(),
+                    [], [], [], [], []
+                )
+                report_html = MULTIQC_AMP.out.report
+            } 
+            // Aggregate nanoplot qc report into one report for metagenomics
+            else if (params.protocol.toLowerCase() == 'metagenomics') {
+                MULTIQC_META (
+                    NANOPLOT.out.txt
+                    .map { it[1] }
+                    .collect(),
+                    [], [], [], [], []
+                )
+                report_html = MULTIQC_META.out.report
+            }
+            else {
+                error "Invalid protocol specified: ${params.protocol}. Must be 'amplicon' or 'metagenomics'"
+            }
         }
     
     emit:
-        multiqc_hmtl_report         = report_html
+        multiqc_html_report = report_html
 }
 
 /*
