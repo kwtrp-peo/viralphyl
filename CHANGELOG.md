@@ -1,3 +1,10 @@
+## [0.9.3](https://github.com/kwtrp-peo/viralphyl/compare/v0.9.2...v0.9.3) (2025-07-16)
+
+
+### Bug Fixes
+
+* provide correct path to test data ([9940872](https://github.com/kwtrp-peo/viralphyl/commit/9940872885f7c2898ab55e56801bb32979ce278c))
+
 ## [0.9.2](https://github.com/kwtrp-peo/viralphyl/compare/v0.9.1...v0.9.2) (2025-07-16)
 
 
