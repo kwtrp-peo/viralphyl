@@ -5,3 +5,4 @@ human respiratory syncytial virus
 Monkeypox virus
 human metapneumovirus
 Shamonda virus
+Zaire ebolavirus
