@@ -15,15 +15,29 @@ def safe_glob(patterns):
             continue
     return sorted(files)  # Deterministic order
 
-def get_column_indices(header, required_cols):
-    """Case-insensitive column index mapping with fallback"""
-    header_lower = [h.lower() for h in header]
-    return {
-        col: header_lower.index(col.lower()) if col.lower() in header_lower else None
-        for col in required_cols
-    }
+def get_column_indices(header, required_cols, aliases=None):
+    """
+    Case-insensitive column index mapping with optional aliases.
+    For each required column, look for itself and any aliases.
+    """
+    if aliases is None:
+        aliases = {}
 
-def process_file(input_path, output_handle, required_cols, write_header=True):
+    header_lower = [h.lower() for h in header]
+    mapping = {}
+
+    for col in required_cols:
+        candidates = [col.lower()] + [alias.lower() for alias in aliases.get(col, [])]
+        found_index = None
+        for candidate in candidates:
+            if candidate in header_lower:
+                found_index = header_lower.index(candidate)
+                break
+        mapping[col] = found_index
+
+    return mapping
+
+def process_file(input_path, output_handle, required_cols, output_cols, aliases=None, write_header=True):
     """Process a TSV file line-by-line with rigorous validation"""
     with open(input_path, 'r', newline='') as f:
         csv_reader = reader(f, delimiter='\t')
@@ -32,18 +46,33 @@ def process_file(input_path, output_handle, required_cols, write_header=True):
         except StopIteration:
             return  # Skip empty files
 
-        col_indices = get_column_indices(header, required_cols)
+        col_indices = get_column_indices(header, required_cols, aliases=aliases)
+
         csv_writer = writer(output_handle, delimiter='\t')
 
         if write_header:
-            csv_writer.writerow(required_cols)
+            csv_writer.writerow(output_cols)
 
         for row in csv_reader:
             try:
-                output_row = [
+                # Get values in order of REQUIRED_COLS
+                output_row_raw = [
                     row[col_indices[col]] if col_indices[col] is not None and col_indices[col] < len(row) else 'Unspecified'
                     for col in required_cols
                 ]
+
+                # Map country → location in output
+                output_row = []
+                for out_col in output_cols:
+                    if out_col == "location":
+                        # pull from country position
+                        country_idx = required_cols.index("country")
+                        output_row.append(output_row_raw[country_idx])
+                    else:
+                        # same name in required_cols
+                        idx = required_cols.index(out_col)
+                        output_row.append(output_row_raw[idx])
+
                 csv_writer.writerow(output_row)
             except Exception as e:
                 sys.stderr.write(f"WARNING: Skipping malformed row in {input_path}: {str(e)}\n")
@@ -51,6 +80,13 @@ def process_file(input_path, output_handle, required_cols, write_header=True):
 
 def main():
     REQUIRED_COLS = ['strain', 'country', 'region', 'date', 'genotype']
+    OUTPUT_COLS = ['strain', 'location', 'region', 'date', 'genotype']
+
+    # Define fallback/alias mappings here:
+    ALIASES = {
+        'date': ['collection_date'],
+        'country': ['location']
+    }
 
     parser = argparse.ArgumentParser(description='Pipeline-safe TSV combiner')
     parser.add_argument('--tsv', nargs='+', required=True, help='Input files/patterns')
@@ -72,6 +108,8 @@ def main():
                     input_file,
                     out_file,
                     REQUIRED_COLS,
+                    output_cols=OUTPUT_COLS,
+                    aliases=ALIASES,
                     write_header=(i == 0)  # Header only once
                 )
         os.replace(tmp_output, args.output)  # Atomic operation
