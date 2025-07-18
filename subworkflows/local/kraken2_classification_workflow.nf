@@ -78,13 +78,21 @@ workflow KRAKEN2_WORKFLOW {
             """
         }
 
-        // Now use mash database to classify reads
-        KRAKEN2_KRAKEN2 (
-            query.map { meta, fastq_gz ->
+        // Combine to make a tuple of sample and ref to 
+        // [ [id:sample_id, single_end:true], fastq.gz, kraken_db ]
+        query.map { meta, fastq_gz ->
                 meta.single_end = true
                 [ meta, fastq_gz ]
-            },
-            kraken2_db,             // [ kraken2_dir ]
+            }.combine(kraken2_db).set{ ref_read_ch }
+
+        // Now use kraken database to classify reads
+        KRAKEN2_KRAKEN2 (
+           // query.map { meta, fastq_gz ->
+           //     meta.single_end = true
+           //     [ meta, fastq_gz ]
+           // },
+           // kraken2_db,             // [ kraken2_dir ]
+            ref_read_ch,      // [ [id:sample_id, single_end:true], fastq.gz, kraken_db ]
             true,
             true
         )
