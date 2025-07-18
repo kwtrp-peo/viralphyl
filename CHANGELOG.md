@@ -1,3 +1,10 @@
+## [0.9.4](https://github.com/kwtrp-peo/viralphyl/compare/v0.9.3...v0.9.4) (2025-07-18)
+
+
+### Bug Fixes
+
+* correct handling of kraken execution via hpts, tar, untar ([b26a32f](https://github.com/kwtrp-peo/viralphyl/commit/b26a32ff40b64b3456f7040e19e15f900a71aacf))
+
 ## [0.9.3](https://github.com/kwtrp-peo/viralphyl/compare/v0.9.2...v0.9.3) (2025-07-16)
 
 
