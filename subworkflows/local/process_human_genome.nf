@@ -30,15 +30,6 @@ workflow HUMAN_GENOME_PROCESSING {
                 .map { [ [:], it ] }
                 .set { genome_index }
         }
-
-        // else if ((input_str.startsWith('http://') || input_str.startsWith('https://') || input_str.startsWith('ftp://')) &&
-        //          input_str.endsWith('.mmi')) {
-        //     // genome_index = Channel
-        //     //     .fromPath(genome_input)
-        //     //     .map { [ [:], it ] }
-        //     print("html.MMI")
-        // }
-
         else if (input_str.startsWith('http://') ||
                  input_str.startsWith('https://') ||
                  input_str.startsWith('ftp://')) {

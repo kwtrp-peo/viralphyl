@@ -8,8 +8,10 @@ process DEPLETE_HUMAN_READS {
         'community.wave.seqera.io/library/minimap2_samtools_pigz:e4ab85aa71b479df' }"
 
     input:
-    tuple val(meta), path(reads)
-    tuple val(meta2), path(reference)
+    // tuple val(meta), path(reads)
+    // tuple val(meta2), path(reference)
+
+    tuple val(meta), path(reads), path(reference)
 
     output:
     tuple val(meta), path("*.non_human_reads.fastq.gz")      , emit: fast_gz
