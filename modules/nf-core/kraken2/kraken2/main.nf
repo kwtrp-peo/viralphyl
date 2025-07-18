@@ -8,8 +8,8 @@ process KRAKEN2_KRAKEN2 {
         'community.wave.seqera.io/library/kraken2_coreutils_pigz:45764814c4bb5bf3' }"
 
     input:
-    tuple val(meta), path(reads)
-    path  db
+    tuple val(meta), path(reads), path(db)
+    // path  db               // modified by sodoyo
     val save_output_fastqs
     val save_reads_assignment
 
