@@ -70,10 +70,16 @@ workflow METAGENOMICS {
             params.human_genome
         )
 
+        // Combine to make a tuple of sample and ref
+        PORECHOP_ABI.out.reads.combine(
+            HUMAN_GENOME_PROCESSING.out.indexed_HG.map{it[1]}
+        ).set{ ref_read_ch }
+
         // Deplete human reads
         DEPLETE_HUMAN_READS (
-            PORECHOP_ABI.out.reads,                  
-            HUMAN_GENOME_PROCESSING.out.indexed_HG   
+            // PORECHOP_ABI.out.reads,                  
+            // HUMAN_GENOME_PROCESSING.out.indexed_HG   
+            ref_read_ch        // [[id:samplexx], fastq, ref]
         )
 
         // Raw read classification
@@ -175,9 +181,6 @@ workflow METAGENOMICS {
            unique_taxid_ch,         // [ taxid ]
            taxid_map_ch             // [ txt ]
         )
-
-        // FETCH_FEFERENCE_FASTA.out.fasta.view()  
-        // KRAKENTOOLS_EXTRACTKRAKENREADS.out.extracted_kraken2_reads.view()      
 
         // Prepare data for mapping
         FETCH_FEFERENCE_FASTA.out.fasta
