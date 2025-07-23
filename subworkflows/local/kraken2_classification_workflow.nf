@@ -15,8 +15,8 @@ include { KRAKEN2_KRAKEN2                   } from '../../modules/nf-core/kraken
 include { DOWNLOAD_REFERENCE_DATA           } from '../../modules/local/download_reference_data'
 include { EXTRACT_TARBALL                   } from '../../modules/local/extract_tarball'
 include { GENERATE_KRAKEN2_SUMMARY          } from '../../modules/local/generate_kraken2_summary'
-include { GENERATE_KRAKEN2_SUMMARY_HTML     } from '../../modules/local/generate_kraken2_summary_html'
-
+include { GENERATE_KRAKEN2_HTML_DASHBOARD   } from '../../modules/local/generate_kraken2_html_dashboard'
+include { SUMMARIZE_KRAKEN2_PATHOGENS       } from '../../modules/local/summarize_kraken2_pathogens'
 
 
 workflow KRAKEN2_WORKFLOW {
@@ -108,9 +108,16 @@ workflow KRAKEN2_WORKFLOW {
         GENERATE_KRAKEN2_SUMMARY.out.tsv.set {kraken_summary_tsv}     // [ id, tsv ]
 
         // Generate hmtl dashboard to visualize the kraken2 summary reports
-        GENERATE_KRAKEN2_SUMMARY_HTML (
+        GENERATE_KRAKEN2_HTML_DASHBOARD (
             GENERATE_KRAKEN2_SUMMARY.out.json.collect()         //    [x, y, z]
         )
+
+        // Generate kraken summary pathogens tsv file
+        SUMMARIZE_KRAKEN2_PATHOGENS (
+            GENERATE_KRAKEN2_SUMMARY.out.json.collect()
+        )
+
+        pathogen_list = SUMMARIZE_KRAKEN2_PATHOGENS.out.summary
 
     emit:
         db                  = kraken2_db
@@ -118,4 +125,5 @@ workflow KRAKEN2_WORKFLOW {
         classified_fastq    = fastq                      // [ [id, paired], fastq ]
         kraken2_output_txt  = kraken_txt_file            // [ [id, paired], kraken2_output ]
         kraken_summary      = kraken_summary_tsv         // [ id, tsv ]
+        pathogens           = pathogen_list              // 
 }
