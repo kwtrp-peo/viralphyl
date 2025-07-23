@@ -1,4 +1,4 @@
-process GENERATE_KRAKEN2_SUMMARY_HTML {
+process GENERATE_KRAKEN2_HTML_DASHBOARD {
     tag "Generating html file"
     label 'process_single'
     label 'error_ignore'
