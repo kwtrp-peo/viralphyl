@@ -1,3 +1,10 @@
+# [0.10.0](https://github.com/kwtrp-peo/viralphyl/compare/v0.9.4...v0.10.0) (2025-07-23)
+
+
+### Features
+
+* Add TSV report for identified pathogens ([fcba998](https://github.com/kwtrp-peo/viralphyl/commit/fcba998cf2980524f94028bd994059086fdc3134))
+
 ## [0.9.4](https://github.com/kwtrp-peo/viralphyl/compare/v0.9.3...v0.9.4) (2025-07-18)
 
 
