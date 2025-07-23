@@ -607,8 +607,8 @@ def generate_dashboard(json_files, output_file="dashboard.html", title="Kraken D
                     {{ title: "TaxID", data: "TaxID" }},
                     {{ title: "Name", data: "Name" }},
                     {{ title: "Read Count", data: "Count", render: $.fn.dataTable.render.number(',', '.', 0, '') }},
-                    {{ title: "Classified %", data: "Classified_Percentage", render: function(data) {{ return data ? data.toFixed(2) + '%' : 'N/A'; }} }},
-                    {{ title: "Total %", data: "Total_Percentage", render: function(data) {{ return data.toFixed(2) + '%'; }} }}
+                    {{ title: "% of Classified Reads", data: "Classified_Percentage", render: function(data) {{ return data ? data.toFixed(2) + '%' : 'N/A'; }} }},
+                    {{ title: "% of All Reads", data: "Total_Percentage", render: function(data) {{ return data.toFixed(2) + '%'; }} }}
                 ],
                 destroy: true,
                 order: [[4, 'desc']], // Sort by total percentage descending
@@ -651,8 +651,8 @@ def generate_dashboard(json_files, output_file="dashboard.html", title="Kraken D
                 columns: [
                     {{ title: "Sample", data: "Sample" }},
                     {{ title: "Total Reads", data: "Total Reads" }},
-                    {{ title: "Unclassified (%)", data: "Unclassified (%)" }},
-                    {{ title: "Classified (%)", data: "Classified (%)" }},
+                    {{ title: "Unclassified Reads (%)", data: "Unclassified (%)" }},
+                    {{ title: "Classified Reads (%)", data: "Classified (%)" }},
                     {{ title: "Number of Taxa", data: "Number of Taxa" }},
                     {{ title: "Top Taxa", data: "Top Taxa" }},
                     {{ title: "Top Taxa %", data: "Top Taxa %" }}
