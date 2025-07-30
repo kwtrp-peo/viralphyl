@@ -8,10 +8,10 @@ process KRAKENTOOLS_EXTRACTKRAKENREADS {
     'docker.io/samordil/fieldbio-multiref:1.0.0'}"
 
     input:
-    tuple val(meta), val(taxid), path(classified_reads_fastq), path(classified_reads_assignment), path(report)
+    tuple val(meta), val(taxid), path(classified_reads_fastq), path(classified_reads_assignment), path(report), val(taxname)
 
     output:
-    tuple val(taxid), val(meta.id), path("*.{fastq.gz,fasta.gz}"), emit: extracted_kraken2_reads
+    tuple val(taxid), val(meta.id), val(taxname),  path("*.{fastq.gz,fasta.gz}"), emit: extracted_kraken2_reads
 
     path "versions.yml", emit: versions
 

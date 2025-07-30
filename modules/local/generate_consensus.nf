@@ -8,7 +8,7 @@ process GENERATE_CONSENSUS {
         'community.wave.seqera.io/library/minimap2_samtools_pigz:e4ab85aa71b479df' }"
 
     input:
-    tuple val(taxid), val(sample_id), path(ref), path(fastq_gz)
+    tuple val(taxid), val(sample_id), path(ref), path(fastq_gz), val(pathogen)
 
     output:
     tuple val("${sample_id}_taxon_${taxid}"), path("${sample_id}_taxon_${taxid}.fasta")      , emit: fasta
@@ -30,7 +30,7 @@ process GENERATE_CONSENSUS {
         $args \\
         --threads $task.cpus ${sample_id}_taxon_${taxid}.bam \\
         -aa \\
-        --format fasta | sed "s/^>/>${sample_id}_taxon_${taxid}|/" > ${sample_id}_taxon_${taxid}.fasta
+        --format fasta | sed "s!^>!>${sample_id}|taxon_${taxid}|${pathogen}|ref_!" > ${sample_id}_taxon_${taxid}.fasta
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

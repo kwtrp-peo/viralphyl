@@ -117,7 +117,7 @@ def showHelp() {
         SUBSAMPLING OPTIONS:
         --------------------
         --subsample_seed INT         Seed for subsampling (-1 = random, default: 123)
-        --subsample_max_sequences INT Max sequences in tree (default: 250)
+        --subsample_max_sequences    INT Max sequences in tree (default: 250)
         --subsample_by STR           Criteria: "country", "region", "year", etc. (default: "country year month")
 
         AUGUR AUSPICE OPTIONS
@@ -135,9 +135,9 @@ def showHelp() {
         --mash_db                   Mash sketch DB (.msh). Auto-downloaded if not provided.
         --kraken2_db                Kraken2 DB, a link or a db directory. Auto-downloaded if not provided.
         --show_organisms            Number of top organisms to report per sample from the mash classifier (Default: 3) 
-        --target_pathogen           Path to a text file with pathogen(s) (one per line) for genome assembly.
-                                    Use a single space between words in multi-word names.
         --min_reads_per_taxon       INT   Minimum reads required per taxon (species/strain) to qualify for assembly.
+        --target_pathogen           Path to a text file with one pathogen name per line. Use single spaces for multi-word names.
+                                    Default is null (assembles all classified pathogens meeting --min_reads_per_taxon). 
 
     Example:
     --------
