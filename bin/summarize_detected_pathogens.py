@@ -21,7 +21,7 @@ def yield_rows(file_path, min_reads):
     for taxon in data.get("Taxa", []):
         if taxon["Count"] >= min_reads:
             yield {
-                "Sample": sample_name.replace("run1_", ""),
+                "Sample": sample_name,
                 "Taxid": taxon["TaxID"],
                 "Name": taxon["Name"],
                 "Reads": taxon["Count"],
