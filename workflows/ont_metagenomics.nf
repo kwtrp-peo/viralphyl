@@ -14,7 +14,6 @@ include { KRAKENTOOLS_EXTRACTKRAKENREADS } from '../modules/local/extract_kraken
 include { FETCH_FEFERENCE_FASTA          } from '../modules/local/fetch_reference_from_taxid'
 include { GENERATE_CONSENSUS             } from '../modules/local/generate_consensus'
 
-
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     IMPORT NF-CORE MODULES / SUBWORKFLOWS / FUNCTIONS
@@ -105,37 +104,54 @@ workflow METAGENOMICS {
     // Assembly module
     if (!params.skip_assembly) {
 
-        channel
-        .fromPath(params.target_pathogen)
-        .map { tsv_file -> 
-            [
-                [id: 'pathogen_list'],      // meta
-                [],
-                tsv_file                    // names_txt
-            ]
-        }.set {pathogenInput}
-    
-        // Get the taxid for the priority pathogens from kraken db
-        TAXONKIT_NAME2TAXID (
-            pathogenInput,              // tuple val(meta), val(name), path(names_txt)
-            KRAKEN2_WORKFLOW.out.db     // path taxdb
-        )
+        if (params.target_pathogen) {
+            // User provides a list of pathogen names (1 per line)
 
-        // Filter priority pathogen for each sample
-        FILTER_PRIORITY_PATHOGENS (
-        KRAKEN2_WORKFLOW.out.kraken_summary,       // [ id, tsv ]
-        TAXONKIT_NAME2TAXID.out.tsv.map{ it[1] }   // [ tsv ]
-        )
+            channel
+                .fromPath(params.target_pathogen)
+                .map { tsv_file -> 
+                    [
+                        [id: 'pathogen_list'],  // meta
+                        [],
+                        tsv_file                // path to pathogen list
+                    ]
+                }
+                .set { pathogenInput }
 
-        // Filter out taxids with reads < params.min_reads
-        FILTER_PRIORITY_PATHOGENS.out.tsv
-            .flatMap { sample_id, tsv_file ->
-                file(tsv_file)      // convert the channel to a file object
-                .splitCsv(sep: '\t', header: true)      // Split the tsv file
-                .findAll { row -> row.reads.toInteger() >= params.min_reads_per_taxon }  // Filter first
-                .collect { row -> [ sample_id, row.taxid] }       // Then extract
-            }
-            .set { taxid_ch }
+            // Convert pathogen names to TaxIDs using taxonkit and Kraken DB
+            TAXONKIT_NAME2TAXID(
+                pathogenInput,                  // [ meta, empty, txt ]
+                KRAKEN2_WORKFLOW.out.db         // Kraken taxonomy DB
+            )
+
+            // Filter Kraken summary to retain only listed pathogens
+            FILTER_PRIORITY_PATHOGENS(
+                KRAKEN2_WORKFLOW.out.kraken_summary,      // [ id, tsv ]
+                TAXONKIT_NAME2TAXID.out.tsv.map { it[1] } // [ tsv with taxids ]
+            )
+
+            // Filter taxids with low read count
+            FILTER_PRIORITY_PATHOGENS.out.tsv
+                .flatMap { sample_id, tsv_file ->
+                    file(tsv_file)
+                        .splitCsv(sep: '\t', header: true)
+                        .findAll { row -> row.reads.toInteger() >= params.min_reads_per_taxon }
+                        .collect { row -> [sample_id, row.taxid, row.name] }
+                }
+                .set { taxid_ch }
+
+        } else {
+            // No pathogen list provided → fall back to all taxa from Kraken2 above threshold
+            KRAKEN2_WORKFLOW.out.kraken_summary
+                .flatMap { sample_id, tsv_file ->
+                    file(tsv_file)
+                        .splitCsv(sep: '\t', header: true)
+                        .findAll { row -> row.reads.toInteger() >= params.min_reads_per_taxon }
+                        .collect{ row -> [sample_id, row.taxid, row.name] }
+                }
+                .set { taxid_ch }       // [run1_bc01, 186538, Zaire ebolavirus]
+                
+        }
 
         // 2. Create a map of sample→files (one entry per sample)
         KRAKEN2_WORKFLOW.out.classified_fastq                       // kraken classified fastq
@@ -150,33 +166,37 @@ workflow METAGENOMICS {
                     }
             ).set { sample_files_ch }
 
-
         // Prepare data for extract_kraken.py
         sample_files_ch.cross(taxid_ch)
-            .map {          // [[a,b,c,d], [e,f]]
+            .map {          // [[a,b,c,d], [e,f,g]]
                 [                
                 [id: it[0][0], single_end: true],  // meta map
                 it[1][1],                         // taxid
                 it[0][1],                         // classified_fastq_gz
                 it[0][2],                         // kraken output
-                it[0][3]                          // kraken report
+                it[0][3],                          // kraken report
+                it[1][2]                          // pathogen name
                 ]
             }. set { extract_kraken_ch }
 
-        // Extract reads for priority pathogens
+        // Extract reads for priority/identified pathogens
         KRAKENTOOLS_EXTRACTKRAKENREADS (
-            extract_kraken_ch
+            extract_kraken_ch        // [[a,b,c,d], [e,f,g]]
         )
 
         // Get the unique taxids for references downlod through accessions
         taxid_ch.unique{ it[1] }               // remove duplicate taxids
-            .map{ sample_id, taxid -> taxid }
+            .map{ sample_id, taxid, name -> 
+                    taxid }
             .set { unique_taxid_ch }
-
+            
+        // Get the map file for taxid:acession from kraken db directory
         KRAKEN2_WORKFLOW.out.db
             .map { db_dir -> file("${db_dir}/seqid2taxid.map") }  
             .set { taxid_map_ch }
 
+        // Download the refrence using the accession number obtained
+        // after the mapping of taxid to accessions
         FETCH_FEFERENCE_FASTA (
            unique_taxid_ch,         // [ taxid ]
            taxid_map_ch             // [ txt ]
@@ -185,36 +205,38 @@ workflow METAGENOMICS {
         // Prepare data for mapping
         FETCH_FEFERENCE_FASTA.out.fasta
         .cross( KRAKENTOOLS_EXTRACTKRAKENREADS.out.extracted_kraken2_reads )
-        .map{                   // [ [taxid, ref], [taxid, id, fastq] ]
+        .map{                   // [ [taxid, ref], [taxid, sample_id, virus_name, fastq] ]
             [                
                 it[0][0],                          // taxid 
-                it[1][1],                         // sample id
-                it[0][1],                         // ref fasta
-                it[1][2]                         // classified_fastq_gz
+                it[1][1],                          // sample id
+                it[0][1],                          // ref fasta
+                it[1][3],                          // classified_fastq_gz
+                it[1][2]                           // pathogen name
                 ]
-        }.set { mapping_data }                   // [ taxid, sample_id, ref, fastq ]
+        }.set { mapping_data }                   // [ taxid, sample_id, ref, fastq, pathogen ]
 
-        GENERATE_CONSENSUS (
-            mapping_data                // [ taxid, sample_id, ref, fastq ]
-        )
+        // Select the best reference incase of mutliple references
 
-        
+        // // Generate consensus sequence
+        // GENERATE_CONSENSUS (
+        //     mapping_data                // [ taxid, sample_id, ref, fastq, pathogen ]
+        // )
 
-    // Get the taxids as a list of space separated integers
-    // TAXONKIT_NAME2TAXID.out.tsv
-    // .map { meta, tsv_file ->                    // Destructure tuple
-    //    tsv_file                             
-    //     .readLines()                            // Read lines from file
-    //     .collect {
-    //         def cols = it.split('\t')           // Split line into columns
-    //         cols.size() > 1 ? cols[1] : null    // Safely access 2nd column
-    //     } 
-    //     .findAll { it }                     // Remove empty strings or null
-    //     .collect { it.toInteger() }         // convert to integer
-    //     .join(' ')                          // Join into space-separated string
-    // }.set {taxids}                          // 34 67 89 89
+        // Get the taxids as a list of space separated integers
+        // TAXONKIT_NAME2TAXID.out.tsv
+        // .map { meta, tsv_file ->                    // Destructure tuple
+        //    tsv_file                             
+        //     .readLines()                            // Read lines from file
+        //     .collect {
+        //         def cols = it.split('\t')           // Split line into columns
+        //         cols.size() > 1 ? cols[1] : null    // Safely access 2nd column
+        //     } 
+        //     .findAll { it }                     // Remove empty strings or null
+        //     .collect { it.toInteger() }         // convert to integer
+        //     .join(' ')                          // Join into space-separated string
+        // }.set {taxids}                          // 34 67 89 89
 
-    // taxids.view()
+        // taxids.view()
 
     }
 
@@ -226,4 +248,3 @@ workflow METAGENOMICS {
     
 
 }
-    
