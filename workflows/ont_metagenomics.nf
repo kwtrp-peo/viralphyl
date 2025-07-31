@@ -76,8 +76,6 @@ workflow METAGENOMICS {
 
         // Deplete human reads
         DEPLETE_HUMAN_READS (
-            // PORECHOP_ABI.out.reads,                  
-            // HUMAN_GENOME_PROCESSING.out.indexed_HG   
             ref_read_ch        // [[id:samplexx], fastq, ref]
         )
 
@@ -196,7 +194,7 @@ workflow METAGENOMICS {
             .set { taxid_map_ch }
 
         // Download the refrence using the accession number obtained
-        // after the mapping of taxid to accessions
+        // after the mappiong of taxid to accessions
         FETCH_FEFERENCE_FASTA (
            unique_taxid_ch,         // [ taxid ]
            taxid_map_ch             // [ txt ]
@@ -215,28 +213,10 @@ workflow METAGENOMICS {
                 ]
         }.set { mapping_data }                   // [ taxid, sample_id, ref, fastq, pathogen ]
 
-        // Select the best reference incase of mutliple references
-
-        // // Generate consensus sequence
-        // GENERATE_CONSENSUS (
-        //     mapping_data                // [ taxid, sample_id, ref, fastq, pathogen ]
-        // )
-
-        // Get the taxids as a list of space separated integers
-        // TAXONKIT_NAME2TAXID.out.tsv
-        // .map { meta, tsv_file ->                    // Destructure tuple
-        //    tsv_file                             
-        //     .readLines()                            // Read lines from file
-        //     .collect {
-        //         def cols = it.split('\t')           // Split line into columns
-        //         cols.size() > 1 ? cols[1] : null    // Safely access 2nd column
-        //     } 
-        //     .findAll { it }                     // Remove empty strings or null
-        //     .collect { it.toInteger() }         // convert to integer
-        //     .join(' ')                          // Join into space-separated string
-        // }.set {taxids}                          // 34 67 89 89
-
-        // taxids.view()
+        // Select the best reference incase of mutliple references and generate consensus
+        GENERATE_CONSENSUS (
+            mapping_data                // [ taxid, sample_id, ref, fastq, pathogen ]
+        )
 
     }
 
@@ -246,5 +226,4 @@ workflow METAGENOMICS {
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     */
     
-
 }
