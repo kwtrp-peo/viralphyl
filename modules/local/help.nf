@@ -135,9 +135,15 @@ def showHelp() {
         --mash_db                   Mash sketch DB (.msh). Auto-downloaded if not provided.
         --kraken2_db                Kraken2 DB, a link or a db directory. Auto-downloaded if not provided.
         --show_organisms            Number of top organisms to report per sample from the mash classifier (Default: 3) 
-        --min_reads_per_taxon       INT   Minimum reads required per taxon (species/strain) to qualify for assembly.
+        --min_reads_per_taxon       INT   Minimum reads required per taxon (species/strain) to qualify for assembly (Defalt: 1000).
         --target_pathogen           Path to a text file with one pathogen name per line. Use single spaces for multi-word names.
-                                    Default is null (assembles all classified pathogens meeting --min_reads_per_taxon). 
+                                    Default is null (assembles all classified pathogens meeting --min_reads_per_taxon threshold). 
+
+        CONSENSUS GENERATION:
+        --------------------- 
+        --priority                  Metric to prioritize for best reference selection (default: mapped). 
+                                    Options: [ "mapped", "coverage", "score" ]. "score" combines both "mapped" and "coverage". 
+        --keep_all_bams             If set, all BAMs and indices from consensus generation are retained. (Default: false)       
 
     Example:
     --------
