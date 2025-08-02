@@ -13,6 +13,7 @@ include { FILTER_PRIORITY_PATHOGENS      } from '../modules/local/filter_priorit
 include { KRAKENTOOLS_EXTRACTKRAKENREADS } from '../modules/local/extract_kraken_reads'
 include { FETCH_FEFERENCE_FASTA          } from '../modules/local/fetch_reference_from_taxid'
 include { GENERATE_CONSENSUS             } from '../modules/local/generate_consensus'
+include { METAGENOMICS_ASSEMBLY_STATS    } from '../modules/local/json_to_tsv'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -218,6 +219,10 @@ workflow METAGENOMICS {
             mapping_data                // [ taxid, sample_id, ref, fastq, pathogen ]
         )
 
+        // Generate assembly statatics tsv file
+        METAGENOMICS_ASSEMBLY_STATS (
+            GENERATE_CONSENSUS.out.beststat_json.collect()
+        )        
     }
 
     /*
