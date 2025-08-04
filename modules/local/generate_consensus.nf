@@ -4,15 +4,20 @@ process GENERATE_CONSENSUS {
 
     // Note: the versions here need to match the versions used in the mulled container below and minimap2/index
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'oras://community.wave.seqera.io/library/minimap2_samtools_pigz:6d454bf355c27623' :
-        'community.wave.seqera.io/library/minimap2_samtools_pigz:e4ab85aa71b479df' }"
+        'oras://community.wave.seqera.io/library/minimap2_samtools_pip_biopython:bbb619d04ed4d583' :
+        'community.wave.seqera.io/library/minimap2_samtools_pip_biopython:74cbfe42612aa285' }"
 
     input:
-    tuple val(taxid), val(sample_id), path(ref), path(fastq_gz)
+    tuple val(taxid), val(sample_id), path(ref), path(fastq_gz), val(pathogen)
 
     output:
-    tuple val("${sample_id}_taxon_${taxid}"), path("${sample_id}_taxon_${taxid}.fasta")      , emit: fasta
-    path "versions.yml"                                                                     , emit: versions
+    path "${sample_id}_${taxid}.consensus.fasta"            , emit: fasta
+    path "${sample_id}_${taxid}.bam.bai"                    , emit: bai
+    path "${sample_id}_${taxid}.bam"                        , emit: bam
+    path "${sample_id}_${taxid}_beststat.json"              , emit: beststat_json
+    path "${sample_id}_${taxid}_allstats.json"              , emit: allstats_json
+    path "${sample_id}_bams",             optional:true     , emit: all_bams
+    path "versions.yml"                                     , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -22,15 +27,17 @@ process GENERATE_CONSENSUS {
     def args = task.ext.args ?: ''
 
     """
-    minimap2 \\
-	    -ax map-ont -t $task.cpus $ref $fastq_gz | samtools view --bam -F 4 | samtools sort -o ${sample_id}_taxon_${taxid}.bam
-
-    # Call the consensus
-    samtools consensus \\
-        $args \\
-        --threads $task.cpus ${sample_id}_taxon_${taxid}.bam \\
-        -aa \\
-        --format fasta | sed "s/^>/>${sample_id}_taxon_${taxid}|/" > ${sample_id}_taxon_${taxid}.fasta
+    bestref_consensus.py \\
+    $args \\
+    --threads $task.cpus \\
+    --reads $fastq_gz \\
+    --msa $ref \\
+    --output ${sample_id}_${taxid} \\
+    --sample_id ${sample_id} \\
+    --taxid ${taxid} \\
+    --pathogen "${pathogen}" \\
+    --mapping-json ${sample_id}_${taxid}_allstats.json \\
+    --best-json ${sample_id}_${taxid}_beststat.json
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
