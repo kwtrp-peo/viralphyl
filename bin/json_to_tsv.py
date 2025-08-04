@@ -50,7 +50,7 @@ def main():
         "sample_id": "Sample",
         "taxid": "Taxid",
         "organism": "Organism",
-        "total": "Total Reads",
+        "total": "Read Count",
         "mapped": "Mapped Reads",
         "mapped_percent": "Mapped Reads %",
         "ref_id": "Ref Accession",
