@@ -1,3 +1,19 @@
+# [0.11.0](https://github.com/kwtrp-peo/viralphyl/compare/v0.10.0...v0.11.0) (2025-08-04)
+
+
+### Bug Fixes
+
+* correct headers in metagenomic stats TSV ([d8819e2](https://github.com/kwtrp-peo/viralphyl/commit/d8819e2cdbd4edb8ff990ae0b17d16aef7a8555d))
+* Correct sample ID labeling ([dbb5c07](https://github.com/kwtrp-peo/viralphyl/commit/dbb5c0781797de4530dbcc0e36aaa86338ed316c))
+* Correct user-defined parameters parsing ([de571a5](https://github.com/kwtrp-peo/viralphyl/commit/de571a53b05bf8d9a60477159873e354905c6cbb))
+
+
+### Features
+
+* add metagenomics assembly stats module ([b2a60fc](https://github.com/kwtrp-peo/viralphyl/commit/b2a60fcd783aebd17014f0f476a32d393d9db72e))
+* Add pathogen name to final consensus and allow downloading multiple references ([db5eeb8](https://github.com/kwtrp-peo/viralphyl/commit/db5eeb8fb368023c14d2a149e0c9241bdfcd017d))
+* Implement consensus generation module ([9e4a94e](https://github.com/kwtrp-peo/viralphyl/commit/9e4a94ea730ac43e0c8e99163b997997710f268f))
+
 # [0.10.0](https://github.com/kwtrp-peo/viralphyl/compare/v0.9.4...v0.10.0) (2025-07-23)
 
 
