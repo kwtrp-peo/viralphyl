@@ -1,7 +1,7 @@
 process FETCH_FEFERENCE_FASTA {
     tag "Download ref for $taxid"
     label 'process_medium'
-    label 'error_retry'
+    label 'error_ignore'
 
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
     'https://depot.galaxyproject.org/singularity/entrez-direct:22.4--he881be0_0':
