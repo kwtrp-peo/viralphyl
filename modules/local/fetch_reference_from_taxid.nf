@@ -1,7 +1,7 @@
 process FETCH_FEFERENCE_FASTA {
     tag "Download ref for $taxid"
     label 'process_medium'
-    label 'error_retry'
+    label 'error_ignore'
 
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
     'https://depot.galaxyproject.org/singularity/entrez-direct:22.4--he881be0_0':
@@ -16,10 +16,11 @@ process FETCH_FEFERENCE_FASTA {
 
     script:
     """
-    # Get accession from kraken db
-    accession=\$(awk -v TAXID=$taxid '\$2 == TAXID { split(\$1, a, "|"); print a[3]; exit }' ${seqid2taxid_map})
-    
-    # download the reference
-    epost -db nuccore -id \$accession | efetch -format fasta > ${taxid}.fasta
+    # Extract all accessions for the given taxid from the seqid2taxid map
+    accessions=\$(awk -v TAXID=${taxid} -F'\t' '\$2 == TAXID { n = split(\$1, a, "|"); print a[n] }' ${seqid2taxid_map} | paste -sd "," -)
+
+    # Download the reference sequences in FASTA format
+    epost -db nuccore -id "\$accessions" | efetch -format fasta > "${taxid}.fasta"
+
     """
 }
