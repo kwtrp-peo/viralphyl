@@ -1,3 +1,10 @@
+## [0.11.1](https://github.com/kwtrp-peo/viralphyl/compare/v0.11.0...v0.11.1) (2025-08-25)
+
+
+### Bug Fixes
+
+* doi ([f18f780](https://github.com/kwtrp-peo/viralphyl/commit/f18f780115362b9f3d8bbad463a653422f9f6770))
+
 # [0.11.0](https://github.com/kwtrp-peo/viralphyl/compare/v0.10.0...v0.11.0) (2025-08-04)
 
 
