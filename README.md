@@ -6,6 +6,7 @@
 [![run with docker](https://img.shields.io/badge/run%20with-docker-0db7ed?labelColor=000000&logo=docker)](https://www.docker.com/)
 [![run with singularity](https://img.shields.io/badge/run%20with-singularity-1d355c.svg?labelColor=000000)](https://sylabs.io/docs/)
 [![Launch on Seqera Platform](https://img.shields.io/badge/Launch%20%F0%9F%9A%80-Seqera%20Platform-%234256e7)](https://cloud.seqera.io/launch?pipeline=https://github.com/kwtrp-peo/viralphyl)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.16941334.svg)](https://doi.org/10.5281/zenodo.16941334)
 
 ## Introduction
 
@@ -171,7 +172,7 @@ If you would like to contribute to this pipeline, please see the [contributing g
 
 <!-- TODO nf-core: Add bibliography of tools and data used in your pipeline -->
 
-If you use the kwtrp-peo/viralphyl pipeline in your research, please reference it using DOI: xxxx.
+If you use the kwtrp-peo/viralphyl pipeline in your research, please reference it using [DOI: 10.5281/zenodo.16941334](https://doi.org/10.5281/zenodo.16941334)
 
 An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
 
