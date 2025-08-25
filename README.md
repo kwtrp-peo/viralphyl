@@ -171,6 +171,8 @@ If you would like to contribute to this pipeline, please see the [contributing g
 
 <!-- TODO nf-core: Add bibliography of tools and data used in your pipeline -->
 
+If you use the kwtrp-peo/viralphyl pipeline in your research, please reference it using DOI: xxxx.
+
 An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
 
 This pipeline uses code and infrastructure developed and maintained by the [nf-core](https://nf-co.re) community, reused here under the [GNU General Public License v3.0](./LICENSE)
