@@ -25,7 +25,7 @@
 
   > Price, M. N., Dehal, P. S., & Arkin, A. P. (2009). Fasttree: Computing large minimum evolution trees with profiles instead of a distance matrix. Molecular Biology and Evolution, 26(7), 1641–1650. https://doi.org/10.1093/MOLBEV/MSP077,
 
-- [Kraken2 2.14](https://pmc.ncbi.nlm.nih.gov/articles/PMC6883579/)
+- [Kraken2 v2.14](https://pmc.ncbi.nlm.nih.gov/articles/PMC6883579/)
 
   > Wood, D. E., Lu, J., & Langmead, B. (2019). Improved metagenomic analysis with Kraken 2. Genome Biology, 20(1). https://doi.org/10.1186/S13059-019-1891-0
 
