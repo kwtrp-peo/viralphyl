@@ -5,8 +5,8 @@ process ARTIC_MINION {
     label 'error_ignore'
 
     container "${workflow.containerEngine == 'singularity' || workflow.containerEngine == 'apptainer' ? 
-    'docker://samordil/fieldbio-multiref:1.0.0' : 
-    'docker.io/samordil/fieldbio-multiref:1.0.0'}"
+    'docker://samordil/fieldbio-multiref:1.0.2' : 
+    'docker.io/samordil/fieldbio-multiref:1.0.2'}"
 
     input:
     val model_str
