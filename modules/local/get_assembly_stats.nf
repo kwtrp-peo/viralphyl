@@ -4,8 +4,8 @@ process GET_ASSEMBLY_STATS {
      label 'process_medium'
     
     container "${workflow.containerEngine == 'singularity' || workflow.containerEngine == 'apptainer' ? 
-    'docker://samordil/fieldbio-multiref:1.0.0' : 
-    'docker.io/samordil/fieldbio-multiref:1.0.0'}"
+    'docker://samordil/fieldbio-multiref:1.0.2' : 
+    'docker.io/samordil/fieldbio-multiref:1.0.2'}"
 
     input:
     path tsv_files

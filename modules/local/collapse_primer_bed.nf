@@ -5,8 +5,8 @@ process COLLAPSE_PRIMER_BED {
      label 'process_single'
     
     container "${workflow.containerEngine == 'singularity' || workflow.containerEngine == 'apptainer' ? 
-    'docker://samordil/fieldbio-multiref:1.0.0' : 
-    'docker.io/samordil/fieldbio-multiref:1.0.0'}"
+    'docker://samordil/fieldbio-multiref:1.0.2' : 
+    'docker.io/samordil/fieldbio-multiref:1.0.2'}"
 
     input:
     path scheme_bed
