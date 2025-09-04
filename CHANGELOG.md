@@ -1,3 +1,10 @@
+## [0.11.2](https://github.com/kwtrp-peo/viralphyl/compare/v0.11.1...v0.11.2) (2025-09-04)
+
+
+### Bug Fixes
+
+* fieldbio-multiref image download ([d9d1ead](https://github.com/kwtrp-peo/viralphyl/commit/d9d1ead683c5642be54e4cbb062e94632cddc313))
+
 ## [0.11.1](https://github.com/kwtrp-peo/viralphyl/compare/v0.11.0...v0.11.1) (2025-08-25)
 
 
