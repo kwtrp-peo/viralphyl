@@ -4,8 +4,8 @@ process PHYLO_COMBINE_TSVS {
      label 'process_medium'
     
     container "${workflow.containerEngine == 'singularity' || workflow.containerEngine == 'apptainer' ? 
-    'docker://samordil/fieldbio-multiref:1.0.0' : 
-    'docker.io/samordil/fieldbio-multiref:1.0.0'}"
+    'docker://samordil/fieldbio-multiref:1.0.2' : 
+    'docker.io/samordil/fieldbio-multiref:1.0.2'}"
 
     input:
     path tsv_files    // [tsv1 tsv2 tsv3 ]

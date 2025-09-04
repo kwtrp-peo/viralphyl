@@ -4,8 +4,8 @@ process KRAKENTOOLS_EXTRACTKRAKENREADS {
     label 'process_medium'
 
     container "${workflow.containerEngine == 'singularity' || workflow.containerEngine == 'apptainer' ? 
-    'docker://samordil/fieldbio-multiref:1.0.0' : 
-    'docker.io/samordil/fieldbio-multiref:1.0.0'}"
+    'docker://samordil/fieldbio-multiref:1.0.2' : 
+    'docker.io/samordil/fieldbio-multiref:1.0.2'}"
 
     input:
     tuple val(meta), val(taxid), path(classified_reads_fastq), path(classified_reads_assignment), path(report), val(taxname)
