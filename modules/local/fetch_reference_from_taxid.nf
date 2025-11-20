@@ -10,17 +10,20 @@ process FETCH_FEFERENCE_FASTA {
     input:
     val(taxid)          
     path(seqid2taxid_map)
+    path user_tsv 
+    path local_dir_refs
 
     output:
     tuple val(taxid), path("${taxid}.fasta"),       emit: fasta
 
     script:
+    // Check whether an optional tsv file has been provided
+    def user_tsv_file        = user_tsv ? "$user_tsv" : ''
+
+    // Check whether an optional local directory with references fasta has been provided
+    def offline_ref_dir      = local_dir_refs ? "$local_dir_refs" : ''
+
     """
-    # Extract all accessions for the given taxid from the seqid2taxid map
-    accessions=\$(awk -v TAXID=${taxid} -F'\t' '\$2 == TAXID { n = split(\$1, a, "|"); print a[n] }' ${seqid2taxid_map} | paste -sd "," -)
-
-    # Download the reference sequences in FASTA format
-    epost -db nuccore -id "\$accessions" | efetch -format fasta > "${taxid}.fasta"
-
+    fetch_ref_1.1.0.sh ${taxid} ${seqid2taxid_map} ${user_tsv_file} ${offline_ref_dir}
     """
 }

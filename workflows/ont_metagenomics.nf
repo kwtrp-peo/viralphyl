@@ -103,6 +103,18 @@ workflow METAGENOMICS {
     // Assembly module
     if (!params.skip_assembly) {
 
+        // Check for extra reference files for identified taxid
+        // provided by the user
+        if (params.user_seqid2taxid) { 
+            ch_user_seqid2taxid = file(params.user_seqid2taxid) 
+        } else { ch_user_seqid2taxid = [] }
+
+        // Check for a local directory containing reference fastas
+        if (params.local_refs_dir) { 
+            ch_local_refs_dir = file(params.local_refs_dir) 
+        } else { ch_local_refs_dir = [] }
+
+
         if (params.target_pathogen) {
             // User provides a list of pathogen names (1 per line)
 
@@ -198,7 +210,9 @@ workflow METAGENOMICS {
         // after the mappiong of taxid to accessions
         FETCH_FEFERENCE_FASTA (
            unique_taxid_ch,         // [ taxid ]
-           taxid_map_ch             // [ txt ]
+           taxid_map_ch,            // [ txt ]
+           ch_user_seqid2taxid,     // path to user defined tsv
+           ch_local_refs_dir        // path to local dir
         )
 
         // Prepare data for mapping

@@ -42,7 +42,7 @@ workflow QUALITY_CHECK {
             NANOPLOT (
                 ch_samplesheet
                 .map { sample_id, dir_path ->
-                    tuple( id:sample_id, file("${dir_path}/*.fastq.gz") ) 
+                    tuple( id:sample_id, file("${dir_path}/*.{fastq.gz,fq.gz,fastq,fq}") ) 
                 }
             )
 

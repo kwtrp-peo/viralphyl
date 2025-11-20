@@ -1,6 +1,7 @@
 process GENERATE_CONSENSUS {
     tag "${sample_id}_taxon_${taxid}"
     label 'process_high'
+    label 'error_ignore'
 
     // Note: the versions here need to match the versions used in the mulled container below and minimap2/index
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?

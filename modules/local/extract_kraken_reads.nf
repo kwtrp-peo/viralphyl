@@ -2,10 +2,10 @@ process KRAKENTOOLS_EXTRACTKRAKENREADS {
 
     tag "${meta.id}_${taxid}"
     label 'process_medium'
-
+ 
     container "${workflow.containerEngine == 'singularity' || workflow.containerEngine == 'apptainer' ? 
-    'docker://samordil/fieldbio-multiref:1.0.2' : 
-    'docker.io/samordil/fieldbio-multiref:1.0.2'}"
+    'oras://community.wave.seqera.io/library/biopython:1.70--e45e0dfdd0944d98' : 
+    'community.wave.seqera.io/library/biopython:1.70--0acc0c35e5d00983'}"
 
     input:
     tuple val(meta), val(taxid), path(classified_reads_fastq), path(classified_reads_assignment), path(report), val(taxname)

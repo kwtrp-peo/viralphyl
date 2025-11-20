@@ -138,6 +138,13 @@ def showHelp() {
         --min_reads_per_taxon       INT   Minimum reads required per taxon (species/strain) to qualify for assembly (Defalt: 1000).
         --target_pathogen           Path to a text file with one pathogen name per line. Use single spaces for multi-word names.
                                     Default is null (assembles all classified pathogens meeting --min_reads_per_taxon threshold). 
+        --user_seqid2taxid          Optional TSV file in seqid2taxid.map format:
+                                    kraken:taxid|<TAXID>|<ACCESSION>    <ACCESSION>
+                                    Used to add extra accessions for existing taxids.
+                                    Default: null
+        --local_refs_dir            Optional directory with reference FASTA files
+                                    (<ACCESSION>.fasta|.fa|.fna[.gz]) for offline mode.
+                                    Default: null
 
         CONSENSUS GENERATION:
         --------------------- 
