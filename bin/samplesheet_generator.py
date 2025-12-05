@@ -10,7 +10,7 @@ from dateutil import parser as date_parser  # Renamed to avoid conflicts
 
 __author__ = "Samuel Odoyo"
 __email__ = "samordil@gmail.com"
-__version__ = "1.2.3"
+__version__ = "1.2.4"
 __license__ = "MIT"
 
 
@@ -37,7 +37,7 @@ def standardize_date(date_str: str) -> str:
         return date_parser.parse(date_str, dayfirst=True).strftime("%Y-%m-%d")
 
     except (ValueError, TypeError):
-        print(f"⚠ WARNING: Could not parse date '{date_str}', setting to 'NA'.")
+        print(f"WARNING: Could not parse date '{date_str}', setting to 'NA'.")
         return "NA"
 
 
@@ -50,33 +50,58 @@ def normalize_barcode(barcode: str) -> str:
 
 
 def find_barcode_dirs(base_dir: Union[str, Path]) -> list[str]:
-    """Recursively find all barcode directories with format 'barcodeXX'."""
+    """Find barcode directories with optimized pathlib usage."""
     base_path = Path(base_dir).resolve()
-    barcode_dirs: list[str] = []
-
-    barcode_pattern = re.compile(r"^barcode\d{2}$", re.IGNORECASE)
-    run_pattern = re.compile(r"(?i)(?:[\w.\-]*[-_]*)?(run\d+)(?:[-_][\w.\-]*)?")
-
-    for barcode_dir in base_path.rglob("barcode*"):
-        if not barcode_dir.is_dir():
-            continue
-        if "fastq_fail" in barcode_dir.parts:
-            continue
-
-        # Allow directories where any parent matches the run pattern
-        if not any(run_pattern.match(p) for p in barcode_dir.parts):
-            continue
-
-        if barcode_pattern.match(barcode_dir.name):
-            barcode_dirs.append(str(barcode_dir.resolve()))
-
+    if not base_path.is_dir():
+        print(f"WARNING: {base_dir} is not a directory or does not exist")
+        return []
+    
+    barcode_dirs = []
+    base_str = str(base_path)
+    run_regex = re.compile(r'run\d+', re.IGNORECASE)
+    
+    # Helper: Check single directory
+    def is_valid_barcode_dir(dir_path: Path, is_base: bool = False) -> bool:
+        """Check if directory meets all criteria."""
+        # Fast name check
+        name = dir_path.name.lower()
+        if not (name.startswith("barcode") and len(name) == 9 and name[7:].isdigit()):
+            return False
+        
+        # Skip if not base and same as base
+        if not is_base and str(dir_path) == base_str:
+            return False
+        
+        # Skip fastq_fail
+        if "fastq_fail" in dir_path.parts:
+            return False
+        
+        # Check for run in path
+        if not run_regex.search(str(dir_path)):
+            return False
+        
+        # Check for FASTQ files (most expensive)
+        for pattern in ["*.fastq.gz", "*.fq.gz", "*.fastq", "*.fq"]:
+            if next(dir_path.glob(pattern), None):
+                return True
+        return False
+    
+    # Check base directory
+    if is_valid_barcode_dir(base_path, is_base=True):
+        barcode_dirs.append(base_str)
+    
+    # Search subdirectories with filesystem filtering
+    for candidate in base_path.rglob("barcode[0-9][0-9]"):
+        if candidate.is_dir() and is_valid_barcode_dir(candidate, is_base=False):
+            barcode_dirs.append(str(candidate.resolve()))
+    
     return barcode_dirs
 
 
 def extract_run_name(path: Union[str, Path]) -> Optional[str]:
     """Extract sequencing run name from directory path."""
-    match = re.search(r"(?i)(?:\w*[-_]*)?(run\d+)(?:[-_]\w*)?", str(path))
-    return match.group(1).lower() if match else None
+    match = re.search(r'run\d+', str(path), re.IGNORECASE)
+    return match.group(0).lower() if match else None
 
 
 def load_metadata(metadata_file: Union[str, Path]) -> pd.DataFrame:
@@ -129,8 +154,29 @@ def generate_samplesheet(
 
     samplesheet_data: list[list[str]] = []
     missing_metadata_entries: list[list[str]] = []
+    
+    # FIRST: Collect ALL optional columns from ALL metadata entries
     optional_columns: set[str] = set()
-
+    if metadata is not None:
+        for barcode_path in barcode_dirs:
+            barcode_path = Path(barcode_path)
+            run_name = extract_run_name(barcode_path)
+            barcode = normalize_barcode(barcode_path.name)
+            
+            if (barcode, run_name) in metadata.index:
+                row = metadata.loc[(barcode, run_name)]
+                if isinstance(row, pd.DataFrame):
+                    row = row.iloc[0]
+                # Add all columns except the required ones
+                optional_columns.update(
+                    col for col in metadata.columns 
+                    if col not in {"sample_id", "collection_date"}
+                )
+    
+    # Convert to sorted list for consistent ordering
+    optional_columns_sorted = sorted(optional_columns)
+    
+    # SECOND: Process each barcode directory
     for barcode_path in barcode_dirs:
         barcode_path = Path(barcode_path)
         run_name = extract_run_name(barcode_path)
@@ -146,48 +192,50 @@ def generate_samplesheet(
             sample_id_value = str(row.get("sample_id", missing_value)).strip()
             collection_date_value = standardize_date(str(row.get("collection_date", missing_value)).strip())
 
-            optional_metadata = {
-                col: str(row.get(col, missing_value)).strip()
-                for col in metadata.columns if col not in {"sample_id", "collection_date"}
-            }
-            optional_columns.update(optional_metadata.keys())
+            # Create ordered optional metadata using the sorted columns
+            optional_metadata = [
+                str(row.get(col, missing_value)).strip()
+                for col in optional_columns_sorted
+            ]
 
             if missing_value in {sample_id_value, collection_date_value}:
                 missing_metadata_entries.append(
                     [run_name if run_name else "unknown", barcode, sample_id_value, collection_date_value]
-                    + list(optional_metadata.values())
+                    + optional_metadata
                 )
                 continue
 
             strain_id = f"{sample_id_value}"
             samplesheet_data.append(
                 [sample_name, strain_id, str(barcode_path), sample_id_value, collection_date_value]
-                + list(optional_metadata.values())
+                + optional_metadata
             )
         elif metadata is not None:
+            # All missing metadata entries get the same number of optional columns
             missing_metadata_entries.append(
                 [run_name if run_name else "unknown", barcode, missing_value, missing_value]
-                + [missing_value] * len(optional_columns)
+                + [missing_value] * len(optional_columns_sorted)
             )
         else:
+            # No metadata provided
             samplesheet_data.append(
                 [sample_name, strain_id, str(barcode_path), missing_value, missing_value]
-                + [missing_value] * len(optional_columns)
+                + [missing_value] * len(optional_columns_sorted)
             )
 
     if metadata is not None and missing_metadata_entries:
         missing_df = pd.DataFrame(
             missing_metadata_entries,
-            columns=["sequence_run", "barcode_num", "sample_id", "collection_date"] + list(optional_columns)
+            columns=["sequence_run", "barcode_num", "sample_id", "collection_date"] + optional_columns_sorted
         )
         missing_df.to_csv("sample_without_metadata.csv", index=False)
-        print("\n⚠ WARNING: Some samples had missing required metadata and were excluded. Logged in 'sample_without_metadata.csv'.")
+        print("\nWARNING: Some samples had missing required metadata and were excluded. Logged in 'sample_without_metadata.csv'.")
 
     if not samplesheet_data:
         print("\u274c ERROR: No valid sample entries found. Check metadata and directory structure!")
         sys.exit(1)
 
-    columns = ["sample", "strain_id", "fastq_dir", "sample_id", "collection_date"] + list(optional_columns)
+    columns = ["sample", "strain_id", "fastq_dir", "sample_id", "collection_date"] + optional_columns_sorted
     samplesheet_df = pd.DataFrame(samplesheet_data, columns=columns)
 
     output_path = Path(output_file)
@@ -197,6 +245,9 @@ def generate_samplesheet(
         samplesheet_df.to_csv(output_path, index=False)
 
     print(f"\n SUCCESS: Samplesheet generated: {output_path}")
+    print(f"   - Total samples: {len(samplesheet_data)}")
+    if metadata is not None and missing_metadata_entries:
+        print(f"   - Samples excluded (missing metadata): {len(missing_metadata_entries)}")
 
 
 if __name__ == "__main__":
