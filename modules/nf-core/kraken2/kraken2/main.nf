@@ -1,6 +1,7 @@
 process KRAKEN2_KRAKEN2 {
     tag "$meta.id"
     label 'process_high'
+    label 'error_ignore'
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
