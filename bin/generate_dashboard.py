@@ -23,6 +23,9 @@ def generate_dashboard(json_files, output_file="dashboard.html", title="Kraken D
             else:
                 all_data.append(data)
     
+    # Sort samples alphanumerically
+    all_data.sort(key=lambda x: x.get('Sample', ''))
+    
     # Get current date for the footer
     generation_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
@@ -50,6 +53,8 @@ def generate_dashboard(json_files, output_file="dashboard.html", title="Kraken D
             --gray: #6c757d;
             --success: #28a745;
             --danger: #e74c3c;
+            --classified: #3b75afff;
+            --unclassified: #ef8636ff;
         }}
         
         body {{
@@ -79,14 +84,82 @@ def generate_dashboard(json_files, output_file="dashboard.html", title="Kraken D
             padding-bottom: 15px;
         }}
         
+        .controls-section {{
+            background-color: #f8fafc;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 25px;
+            border-left: 4px solid var(--primary);
+        }}
+        
+        .controls-grid {{
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }}
+        
+        .control-group {{
+            flex: 1;
+            min-width: 200px;
+        }}
+        
+        .control-group label {{
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: var(--secondary);
+            font-size: 0.9em;
+        }}
+        
+        .control-group select,
+        .control-group input {{
+            width: 100%;
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }}
+        
+        .button-group {{
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }}
+        
+        button {{
+            padding: 8px 16px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 14px;
+            white-space: nowrap;
+        }}
+        
+        button:hover {{
+            background-color: #2980b9;
+        }}
+        
+        .filter-note {{
+            font-size: 0.85em;
+            color: var(--gray);
+            font-style: italic;
+            margin-top: 10px;
+        }}
+        
         .metric-cards {{
             display: flex;
             gap: 15px;
             margin-bottom: 25px;
+            flex-wrap: wrap;
         }}
         
         .metric-card {{
             flex: 1;
+            min-width: 200px;
             padding: 20px;
             background: white;
             border-radius: 8px;
@@ -106,21 +179,6 @@ def generate_dashboard(json_files, output_file="dashboard.html", title="Kraken D
             font-size: 14px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-        }}
-        
-        .filter-section {{
-            background-color: #f8fafc;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 25px;
-            border-left: 4px solid var(--primary);
-        }}
-        
-        .filter-note {{
-            font-size: 0.85em;
-            color: var(--gray);
-            margin-left: 10px;
-            font-style: italic;
         }}
         
         .chart-container {{
@@ -154,6 +212,7 @@ def generate_dashboard(json_files, output_file="dashboard.html", title="Kraken D
         .tab-buttons {{
             display: flex;
             margin-bottom: -1px;
+            flex-wrap: wrap;
         }}
         
         .tab-button {{
@@ -190,33 +249,6 @@ def generate_dashboard(json_files, output_file="dashboard.html", title="Kraken D
             display: block;
         }}
         
-        select, input {{
-            padding: 8px 12px;
-            margin-right: 10px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-        }}
-        
-        label {{
-            margin-right: 5px;
-            font-weight: 500;
-            color: var(--secondary);
-        }}
-        
-        button {{
-            padding: 8px 16px;
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }}
-        
-        button:hover {{
-            background-color: #2980b9;
-        }}
-        
         .footer {{
             margin-top: 30px;
             padding-top: 15px;
@@ -240,13 +272,22 @@ def generate_dashboard(json_files, output_file="dashboard.html", title="Kraken D
                 flex-direction: column;
             }}
             
+            .controls-grid {{
+                flex-direction: column;
+                gap: 10px;
+            }}
+            
+            .button-group {{
+                width: 100%;
+            }}
+            
+            button {{
+                flex: 1;
+            }}
+            
             .tab-buttons {{
                 overflow-x: auto;
                 padding-bottom: 10px;
-            }}
-            
-            .filter-section {{
-                padding: 15px 10px;
             }}
         }}
     </style>
@@ -255,24 +296,48 @@ def generate_dashboard(json_files, output_file="dashboard.html", title="Kraken D
     <div class="dashboard-container">
         <h1>{title}</h1>
         
-        <div class="metric-cards">
-            <!-- Will be populated by JavaScript -->
+        <!-- Metric Cards - Will be populated by JavaScript -->
+        <div class="metric-cards"></div>
+        
+        <!-- Controls Section -->
+        <div class="controls-section">
+            <div class="controls-grid">
+                <div class="control-group">
+                    <label for="sample-search"> Search Sample:</label>
+                    <input type="text" id="sample-search" placeholder="Type to filter samples...">
+                </div>
+                
+                <div class="control-group">
+                    <label for="sample-select"> Select Sample:</label>
+                    <select id="sample-select"></select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="sort-order"> Sort Samples:</label>
+                    <select id="sort-order">
+                        <option value="alpha">Alphabetical (A-Z)</option>
+                        <option value="alpha-desc">Alphabetical (Z-A)</option>
+                        <option value="reads">By Total Reads</option>
+                        <option value="taxa">By Taxa Count</option>
+                        <option value="classified">By Classified %</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="min-pct"> Chart Min %:</label>
+                    <input type="number" id="min-pct" min="0" max="100" value="0" step="0.1">
+                </div>
+                
+                <div class="button-group">
+                    <button id="apply-filters">Update Chart</button>
+                </div>
+            </div>
+            <div class="filter-note">
+                 Table shows all taxa - use table search/filters below. Charts respect minimum percentage.
+            </div>
         </div>
         
-        <div class="filter-section">
-            <label for="sample-select">Sample:</label>
-            <select id="sample-select">
-                <!-- Options will be added by JavaScript -->
-            </select>
-            
-            <label for="min-pct">Chart Min %:</label>
-            <input type="number" id="min-pct" min="0" max="100" value="0" step="0.1"
-                   title="Minimum percentage for taxa in the chart">
-            
-            <button id="apply-filters">Update Chart</button>
-            <span class="filter-note">(Table shows all taxa - use search/filters below)</span>
-        </div>
-        
+        <!-- Tabs -->
         <div class="tab-container">
             <div class="tab-buttons">
                 <button class="tab-button active" data-tab="summary">Summary</button>
@@ -324,413 +389,510 @@ def generate_dashboard(json_files, output_file="dashboard.html", title="Kraken D
         // Embedded data from JSON files
         const sampleData = {json.dumps(all_data, indent=4)};
         
-        // Version information
-        const versionInfo = {{
-            generator: "kwtrp-peo/viraphyl",
-            version: "0.7.0",
-            doi: "234123442358x",
-            url: "https://github.com/kwtrp-peo/viraphyl",
-            generated: new Date().toISOString()
+        // ==================== UTILITY FUNCTIONS ====================
+        
+        // Natural alphanumeric sorting using Intl.Collator
+        const naturalCompare = new Intl.Collator(undefined, {{
+            numeric: true,
+            sensitivity: 'base'
+        }}).compare;
+        
+        // ==================== SAMPLE HELPER ====================
+        // Single source of truth for sample metrics with caching
+        
+        const SampleHelper = {{
+            cache: new Map(),
+            
+            getMetrics(sample) {{
+                if (this.cache.has(sample.Sample)) {{
+                    return this.cache.get(sample.Sample);
+                }}
+                
+                const totalReads = sample.Total_Reads || 0;
+                
+                // Calculate reads
+                const classifiedReads = sample.Classified_Reads || 
+                                       (totalReads * (sample.Classified_Pct / 100)) ||
+                                       (totalReads - (sample.Unclassified_Reads || 0));
+                const unclassifiedReads = sample.Unclassified_Reads || 
+                                         (totalReads - classifiedReads);
+                
+                // Calculate percentages
+                const classifiedPct = sample.Classified_Pct || 
+                                     ((classifiedReads / totalReads) * 100) ||
+                                     (100 - (sample.Unclassified_Pct || 0));
+                const unclassifiedPct = sample.Unclassified_Pct || 
+                                       ((unclassifiedReads / totalReads) * 100) ||
+                                       (100 - classifiedPct);
+                
+                const metrics = {{
+                    totalReads,
+                    classifiedReads,
+                    unclassifiedReads,
+                    classifiedPct,
+                    unclassifiedPct,
+                    taxaCount: sample.Taxa?.length || 0,
+                    topTaxa: sample.Taxa?.[0] || null
+                }};
+                
+                this.cache.set(sample.Sample, metrics);
+                return metrics;
+            }},
+            
+            clearCache() {{
+                this.cache.clear();
+            }}
         }};
         
-        // Initialize the dashboard with debounced updates
-        $(document).ready(function() {{
-            // Populate sample dropdown
-            const sampleSelect = $('#sample-select');
-            sampleData.forEach(sample => {{
-                sampleSelect.append(`<option value="${{sample.Sample}}">${{sample.Sample}}</option>`);
-            }});
-
-            // Initialize tabs
-            $('.tab-button').click(function() {{
-                const tabId = $(this).data('tab');
-                $('.tab-button').removeClass('active');
-                $(this).addClass('active');
-                $('.tab-content').removeClass('active');
-                $(`#${{tabId}}`).addClass('active');
-                updateCharts();
-            }});
-
-            // Automatic updates for sample selection only (300ms debounce)
-            let updateTimeout;
-            $('#sample-select').on('change', function() {{
-                clearTimeout(updateTimeout);
-                updateTimeout = setTimeout(updateCharts, 300);
-            }});
-
-            // Manual update for Min% and force refresh
-            $('#apply-filters').click(function() {{
-                clearTimeout(updateTimeout); // Cancel any pending sample-change updates
-                updateCharts();
-            }});
-
-            // Optional: Add Enter key support for Min% input
-            $('#min-pct').keypress(function(e) {{
-                if (e.which === 13) {{ // 13 = Enter key
-                    $('#apply-filters').click();
+        // ==================== SORTERS ====================
+        
+        const Sorters = {{
+            alpha: (a, b) => naturalCompare(a.Sample, b.Sample),
+            'alpha-desc': (a, b) => naturalCompare(b.Sample, a.Sample),
+            reads: (a, b) => (b.Total_Reads || 0) - (a.Total_Reads || 0),
+            taxa: (a, b) => (b.Taxa?.length || 0) - (a.Taxa?.length || 0),
+            classified: (a, b) => {{
+                const getPct = (s) => SampleHelper.getMetrics(s).classifiedPct;
+                return getPct(b) - getPct(a);
+            }}
+        }};
+        
+        // ==================== RENDERERS ====================
+        
+        const MetricCards = {{
+            render(sample) {{
+                if (!sample) return '';
+                
+                const metrics = SampleHelper.getMetrics(sample);
+                
+                const cards = [
+                    {{ label: 'Total Reads', value: metrics.totalReads, format: 'number' }},
+                    {{ label: 'Classified', value: metrics.classifiedReads, 
+                       percentage: metrics.classifiedPct, format: 'number' }},
+                    {{ label: 'Unclassified', value: metrics.unclassifiedReads, 
+                       percentage: metrics.unclassifiedPct, format: 'number' }},
+                    {{ label: 'Taxa Identified', value: metrics.taxaCount, format: 'number' }}
+                ];
+                
+                return cards.map(card => `
+                    <div class="metric-card">
+                        <div class="metric-value">${{this.formatValue(card)}}</div>
+                        <div class="metric-label">${{card.label}}</div>
+                    </div>
+                `).join('');
+            }},
+            
+            formatValue(card) {{
+                if (card.format === 'number') {{
+                    const formatted = card.value.toLocaleString();
+                    return card.percentage !== undefined ? 
+                        `${{formatted}} (${{card.percentage.toFixed(2)}}%)` : 
+                        formatted;
                 }}
-            }});
-
-            // Initial render
-            updateCharts();
-            renderAllDataTable();
-        }});
-
-        function updateMetricCards(sample) {{
-            const classifiedReads = sample.Classified_Reads || 
-                                 (sample.Total_Reads * (sample.Classified_Pct / 100));
-            const unclassifiedReads = sample.Unclassified_Reads || 
-                                    (sample.Total_Reads - classifiedReads);
-            const classifiedPct = sample.Classified_Pct || 
-                                 ((classifiedReads / sample.Total_Reads) * 100);
-            const unclassifiedPct = sample.Unclassified_Pct || 
-                                  ((unclassifiedReads / sample.Total_Reads) * 100);
+                return card.value;
+            }}
+        }};
+        
+        const TableDataFactory = {{
+            summaryRows(sample) {{
+                const metrics = SampleHelper.getMetrics(sample);
+                
+                return [
+                    {{ Metric: "Total Reads", Value: metrics.totalReads.toLocaleString() }},
+                    {{ Metric: "Unclassified Reads", 
+                       Value: `${{metrics.unclassifiedReads.toLocaleString()}} (${{metrics.unclassifiedPct.toFixed(2)}}%)` }},
+                    {{ Metric: "Classified Reads", 
+                       Value: `${{metrics.classifiedReads.toLocaleString()}} (${{metrics.classifiedPct.toFixed(2)}}%)` }},
+                    {{ Metric: "Number of Taxa", Value: metrics.taxaCount.toLocaleString() }}
+                ];
+            }},
             
-            const cardsHtml = `
-                <div class="metric-card">
-                    <div class="metric-value">${{sample.Total_Reads.toLocaleString()}}</div>
-                    <div class="metric-label">Total Reads</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${{unclassifiedReads.toLocaleString()}}</div>
-                    <div class="metric-label">Unclassified (${{unclassifiedPct.toFixed(2)}}%)</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${{classifiedReads.toLocaleString()}}</div>
-                    <div class="metric-label">Classified (${{classifiedPct.toFixed(2)}}%)</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${{sample.Taxa.length.toLocaleString()}}</div>
-                    <div class="metric-label">Taxa Identified</div>
-                </div>
-            `;
+            comparisonRow(sample) {{
+                const metrics = SampleHelper.getMetrics(sample);
+                
+                return {{
+                    "Sample": sample.Sample,
+                    "Total Reads": metrics.totalReads.toLocaleString(),
+                    "Unclassified (%)": metrics.unclassifiedPct.toFixed(2),
+                    "Classified (%)": metrics.classifiedPct.toFixed(2),
+                    "Number of Taxa": metrics.taxaCount,
+                    "Top Taxa": metrics.topTaxa?.Name || "N/A",
+                    "Top Taxa %": metrics.topTaxa?.Total_Percentage?.toFixed(2) || "N/A"
+                }};
+            }}
+        }};
+        
+        const ChartStyles = {{
+            colors: {{
+                classified: '#3b75afff',
+                unclassified: '#ef8636ff',
+                total: '#2c3e50',
+                success: '#28a745'
+            }},
             
-            $('.metric-cards').html(cardsHtml);
-        }}
-
-        function updateCharts() {{
-            const selectedSample = $('#sample-select').val();
-            const minPct = parseFloat($('#min-pct').val());
+            layout: {{
+                font: {{ family: 'Segoe UI, sans-serif' }},
+                margin: {{ b: 150 }},
+                height: 400
+            }},
             
-            const sample = sampleData.find(s => s.Sample === selectedSample);
-            if (!sample) return;
+            getClassificationData(sample) {{
+                const metrics = SampleHelper.getMetrics(sample);
+                return {{
+                    labels: ['Classified', 'Unclassified'],
+                    values: [metrics.classifiedPct, metrics.unclassifiedPct],
+                    colors: [this.colors.classified, this.colors.unclassified]
+                }};
+            }},
+            
+            getReadsData(sample) {{
+                const metrics = SampleHelper.getMetrics(sample);
+                return [
+                    {{ name: 'Total Reads', value: metrics.totalReads, color: this.colors.total }},
+                    {{ name: 'Classified Reads', value: metrics.classifiedReads, color: this.colors.classified }},
+                    {{ name: 'Unclassified Reads', value: metrics.unclassifiedReads, color: this.colors.unclassified }}
+                ];
+            }}
+        }};
+        
+        // ==================== DASHBOARD STATE ====================
+        
+        const DashboardState = {{
+            currentSample: null,
+            minPercentage: 0,
+            filteredTaxa: [],
+            samples: [],
+            
+            init() {{
+                this.samples = [...sampleData];
+                this.setSample(this.samples[0]?.Sample);
+            }},
+            
+            setSample(sampleName) {{
+                this.currentSample = this.samples.find(s => s.Sample === sampleName);
+                this.updateFilteredTaxa();
+                this.notifyListeners();
+            }},
+            
+            setMinPercentage(value) {{
+                this.minPercentage = value;
+                this.updateFilteredTaxa();
+                this.notifyListeners();
+            }},
+            
+            updateFilteredTaxa() {{
+                if (!this.currentSample?.Taxa) {{
+                    this.filteredTaxa = [];
+                    return;
+                }}
+                this.filteredTaxa = this.currentSample.Taxa
+                    .filter(t => t.Total_Percentage >= this.minPercentage);
+            }},
+            
+            sortSamples(method) {{
+                if (Sorters[method]) {{
+                    this.samples.sort(Sorters[method]);
+                }}
+            }},
+            
+            listeners: [],
+            
+            subscribe(callback) {{
+                this.listeners.push(callback);
+                return () => {{
+                    this.listeners = this.listeners.filter(l => l !== callback);
+                }};
+            }},
+            
+            notifyListeners() {{
+                this.listeners.forEach(cb => cb(this));
+            }}
+        }};
+        
+        // ==================== DASHBOARD UPDATE FUNCTIONS ====================
+        
+        function updateAll(state) {{
+            if (!state.currentSample) return;
             
             // Update metric cards
-            updateMetricCards(sample);
+            $('.metric-cards').html(MetricCards.render(state.currentSample));
             
-            // Show ALL taxa in the table (filtering handled client-side)
-            updateTaxaTable(sample.Taxa);
+            // Update charts
+            updateClassificationChart(state.currentSample);
+            updateReadsChart(state.currentSample);
+            updateTaxaChart(state.filteredTaxa);
             
-            // Apply percentage filter only to the visual chart
-            const filteredTaxa = sample.Taxa.filter(t => t.Total_Percentage >= minPct);
-            updateTaxaChart(filteredTaxa);
-            
-            updateClassificationChart(sample);
-            updateReadsChart(sample);
-            updateSummaryTable(sample);
+            // Update tables
+            updateSummaryTable(state.currentSample);
+            updateTaxaTable(state.filteredTaxa);
         }}
-
+        
         function updateClassificationChart(sample) {{
-            const classifiedPct = sample.Classified_Pct || (100 - sample.Unclassified_Pct);
-            const unclassifiedPct = sample.Unclassified_Pct || (100 - classifiedPct);
-
-            const labels = ['Classified', 'Unclassified'];
-            const values = [classifiedPct, unclassifiedPct];
-
-            const classificationColorMap = {{
-                "Classified": "#3b75afff",
-                "Unclassified": "#ef8636ff"
-            }};
-
-            const data = [{{
-                values: values,
-                labels: labels,
+            const data = ChartStyles.getClassificationData(sample);
+            Plotly.react('classification-chart', [{{
+                values: data.values,
+                labels: data.labels,
                 type: 'pie',
-                marker: {{
-                    colors: labels.map(label => classificationColorMap[label])
-                }},
+                marker: {{ colors: data.colors }},
+                hole: 0.4,
                 textinfo: 'percent',
                 hoverinfo: 'label+percent+value',
-                hole: 0.4,
-                textfont: {{
-                    size: 14
-                }},
                 sort: false
-            }}];
-
-            const layout = {{
+            }}], {{
                 title: 'Read Classification',
-                height: 400,
                 showlegend: true,
-                font: {{
-                    family: 'Segoe UI, sans-serif'
-                }}
-            }};
-
-            Plotly.newPlot('classification-chart', data, layout);
+                ...ChartStyles.layout
+            }});
         }}
-
+        
         function updateReadsChart(sample) {{
-            const classifiedReads = sample.Classified_Reads || 
-                                (sample.Total_Reads * (sample.Classified_Pct / 100));
-            const unclassifiedReads = sample.Unclassified_Reads || 
-                                    (sample.Total_Reads - classifiedReads);
-
-            const data = [
-                {{
-                    name: 'Classified Reads',
-                    value: classifiedReads
-                }},
-                {{
-                    name: 'Unclassified Reads',
-                    value: unclassifiedReads
-                }},
-                {{
-                    name: 'Total Reads',
-                    value: sample.Total_Reads
-                }}
-            ];
-
-            const readColorMap = {{
-                "Total Reads": "#2c3e50",
-                "Classified Reads": "#3b75afff",
-                "Unclassified Reads": "#ef8636ff"
-            }};
-
-            const chartData = [{{
-                x: data.map(item => item.name),
-                y: data.map(item => item.value),
+            const data = ChartStyles.getReadsData(sample);
+            Plotly.react('reads-chart', [{{
+                x: data.map(d => d.name),
+                y: data.map(d => d.value),
                 type: 'bar',
-                marker: {{
-                    color: data.map(item => readColorMap[item.name])
-                }}
-            }}];
-
-            const layout = {{
+                marker: {{ color: data.map(d => d.color) }}
+            }}], {{
                 title: 'Read Counts',
-                yaxis: {{
-                    title: 'Number of Reads'
-                }},
-                font: {{
-                    family: 'Segoe UI, sans-serif'
-                }}
-            }};
-
-            Plotly.newPlot('reads-chart', chartData, layout);
+                yaxis: {{ title: 'Number of Reads' }},
+                ...ChartStyles.layout
+            }});
         }}
-
-
+        
         function updateTaxaChart(taxa) {{
-            // Sort by percentage (descending)
-            taxa.sort((a, b) => b.Total_Percentage - a.Total_Percentage);
+            const topTaxa = taxa
+                .sort((a, b) => b.Total_Percentage - a.Total_Percentage)
+                .slice(0, 50);
             
-            // Limit to top 50 for the chart (for better visualization)
-            const topTaxa = taxa.slice(0, 50);
-            
-            const data = [{{
+            Plotly.react('taxa-chart', [{{
                 x: topTaxa.map(t => t.Name),
                 y: topTaxa.map(t => t.Total_Percentage),
                 type: 'bar',
-                marker: {{
-                    color: 'var(--success)'
-                }}
-            }}];
-            
-            const layout = {{
+                marker: {{ color: ChartStyles.colors.success }}
+            }}], {{
                 title: 'Top Taxa by Percentage (≥ min %)',
-                xaxis: {{
-                    title: 'Taxa',
-                    tickangle: -45
-                }},
-                yaxis: {{
-                    title: 'Percentage (%)'
-                }},
-                margin: {{
-                    b: 150
-                }},
-                font: {{
-                    family: 'Segoe UI, sans-serif'
-                }}
-            }};
-            
-            Plotly.newPlot('taxa-chart', data, layout);
+                xaxis: {{ title: 'Taxa', tickangle: -45 }},
+                yaxis: {{ title: 'Percentage (%)' }},
+                margin: {{ b: 150 }},
+                ...ChartStyles.layout
+            }});
         }}
-
+        
         function updateSummaryTable(sample) {{
-            const classifiedReads = sample.Classified_Reads || 
-                                 (sample.Total_Reads * (sample.Classified_Pct / 100));
-            const unclassifiedReads = sample.Unclassified_Reads || 
-                                    (sample.Total_Reads - classifiedReads);
-            const classifiedPct = sample.Classified_Pct || 
-                                 ((classifiedReads / sample.Total_Reads) * 100);
-            const unclassifiedPct = sample.Unclassified_Pct || 
-                                  ((unclassifiedReads / sample.Total_Reads) * 100);
-            
-            // Ordered summary data
-            const summaryData = [
-                {{
-                    "Metric": "Total Reads",
-                    "Value": sample.Total_Reads.toLocaleString()
-                }},
-                {{
-                    "Metric": "Unclassified Reads",
-                    "Value": `${{unclassifiedReads.toLocaleString()}} (${{unclassifiedPct.toFixed(2)}}%)`
-                }},
-                {{
-                    "Metric": "Classified Reads",
-                    "Value": `${{classifiedReads.toLocaleString()}} (${{classifiedPct.toFixed(2)}}%)`
-                }},
-                {{
-                    "Metric": "Number of Taxa",
-                    "Value": sample.Taxa.length.toLocaleString()
-                }}
-            ];
+            if ($('#summary-table').DataTable().destroy) {{
+                $('#summary-table').DataTable().destroy();
+            }}
             
             $('#summary-table').DataTable({{
-                data: summaryData,
+                data: TableDataFactory.summaryRows(sample),
                 columns: [
                     {{ title: "Metric", data: "Metric" }},
                     {{ title: "Value", data: "Value" }}
                 ],
-                destroy: true,
                 searching: false,
                 paging: false,
                 info: false,
                 ordering: false
             }});
         }}
-
+        
         function updateTaxaTable(taxa) {{
+            if ($('#taxa-table').DataTable().destroy) {{
+                $('#taxa-table').DataTable().destroy();
+            }}
+            
             $('#taxa-table').DataTable({{
                 data: taxa,
                 columns: [
                     {{ title: "TaxID", data: "TaxID" }},
                     {{ title: "Name", data: "Name" }},
                     {{ title: "Read Count", data: "Count", render: $.fn.dataTable.render.number(',', '.', 0, '') }},
-                    {{ title: "% of Classified Reads", data: "Classified_Percentage", render: function(data) {{ return data ? data.toFixed(2) + '%' : 'N/A'; }} }},
-                    {{ title: "% of All Reads", data: "Total_Percentage", render: function(data) {{ return data.toFixed(2) + '%'; }} }}
+                    {{ title: "% of Classified Reads", data: "Classified_Percentage", 
+                       render: data => data ? data.toFixed(2) + '%' : 'N/A' }},
+                    {{ title: "% of All Reads", data: "Total_Percentage", 
+                       render: data => data.toFixed(2) + '%' }}
                 ],
-                destroy: true,
-                order: [[4, 'desc']], // Sort by total percentage descending
+                order: [[4, 'desc']],
                 pageLength: 5,
-                lengthMenu: [5, 10, 25, 50, 100, -1], // -1 means "All"
+                lengthMenu: [5, 10, 25, 50, 100, -1],
                 dom: 'Blfrtip',
-                buttons: [
-                    'copy', 'csv', 'excel', 'pdf', 'print'
-                ],
+                buttons: ['copy', 'csv', 'excel', 'pdf', 'print'],
                 language: {{
                     search: "_INPUT_",
                     searchPlaceholder: "Search taxa..."
                 }}
             }});
         }}
-
+        
         function renderAllDataTable() {{
-            // Prepare data for the comparison table
-            const tableData = sampleData.map(sample => {{
-                const classifiedReads = sample.Classified_Reads || 
-                                     (sample.Total_Reads * (sample.Classified_Pct / 100));
-                const classifiedPct = sample.Classified_Pct || 
-                                     ((classifiedReads / sample.Total_Reads) * 100);
-                const unclassifiedPct = sample.Unclassified_Pct || 
-                                      (100 - classifiedPct);
-                
-                return {{
-                    "Sample": sample.Sample,
-                    "Total Reads": sample.Total_Reads.toLocaleString(),
-                    "Unclassified (%)": unclassifiedPct.toFixed(2),
-                    "Classified (%)": classifiedPct.toFixed(2),
-                    "Number of Taxa": sample.Taxa.length,
-                    "Top Taxa": sample.Taxa[0]?.Name || "N/A",
-                    "Top Taxa %": sample.Taxa[0]?.Total_Percentage?.toFixed(2) || "N/A"
-                }};
-            }});
+            const tableData = sampleData.map(sample => TableDataFactory.comparisonRow(sample));
             
             $('#all-data-table').DataTable({{
                 data: tableData,
                 columns: [
                     {{ title: "Sample", data: "Sample" }},
                     {{ title: "Total Reads", data: "Total Reads" }},
-                    {{ title: "Unclassified Reads (%)", data: "Unclassified (%)" }},
-                    {{ title: "Classified Reads (%)", data: "Classified (%)" }},
-                    {{ title: "Number of Taxa", data: "Number of Taxa" }},
+                    {{ title: "Unclassified (%)", data: "Unclassified (%)" }},
+                    {{ title: "Classified (%)", data: "Classified (%)" }},
+                    {{ title: "# Taxa", data: "Number of Taxa" }},
                     {{ title: "Top Taxa", data: "Top Taxa" }},
                     {{ title: "Top Taxa %", data: "Top Taxa %" }}
                 ],
-                order: [[1, 'desc']], // Sort by total reads descending
+                order: [[1, 'desc']],
                 pageLength: 5,
                 lengthMenu: [5, 10, 25, 50],
                 dom: 'Blfrtip',
-                buttons: [
-                    'copy', 'csv', 'excel', 'pdf', 'print'
-                ]
+                buttons: ['copy', 'csv', 'excel', 'pdf', 'print']
             }});
             
-            // Create comparison chart
             createComparisonChart();
         }}
-
+        
         function createComparisonChart() {{
             const samples = sampleData.map(s => s.Sample);
-            const classified = sampleData.map(s => {{
-                if (s.Classified_Pct) return s.Classified_Pct;
-                const classifiedReads = s.Classified_Reads || 
-                                    (s.Total_Reads * (s.Classified_Pct / 100));
-                return (classifiedReads / s.Total_Reads) * 100;
-            }});
-            const unclassified = sampleData.map((s, i) => {{
-                if (s.Unclassified_Pct) return s.Unclassified_Pct;
-                return 100 - classified[i];
-            }});
-
-            const data = [
+            const classified = sampleData.map(s => SampleHelper.getMetrics(s).classifiedPct);
+            const unclassified = sampleData.map(s => SampleHelper.getMetrics(s).unclassifiedPct);
+            
+            Plotly.newPlot('comparison-chart', [
                 {{
                     x: samples,
                     y: classified,
                     name: 'Classified',
                     type: 'bar',
-                    marker: {{
-                        color: '#3b75afff'
-                    }}
+                    marker: {{ color: ChartStyles.colors.classified }}
                 }},
                 {{
                     x: samples,
                     y: unclassified,
                     name: 'Unclassified',
                     type: 'bar',
-                    marker: {{
-                        color: '#ef8636ff'
-                    }}
+                    marker: {{ color: ChartStyles.colors.unclassified }}
                 }}
-            ];
-
-            const layout = {{
+            ], {{
                 title: 'Classification Across Samples',
                 barmode: 'stack',
-                yaxis: {{
-                    title: 'Percentage (%)',
-                    range: [0, 100]
-                }},
-                font: {{
-                    family: 'Segoe UI, sans-serif'
-                }},
-                legend: {{
-                    traceorder: 'normal'
-                }}
-            }};
-
-            Plotly.newPlot('comparison-chart', data, layout);
+                yaxis: {{ title: 'Percentage (%)', range: [0, 100] }},
+                ...ChartStyles.layout
+            }});
         }}
+        
+        // ==================== DROPDOWN MANAGEMENT ====================
+        
+        function populateSampleDropdown(sortMethod = 'alpha') {{
+            const sampleSelect = $('#sample-select');
+            const currentValue = sampleSelect.val();
+            
+            // Sort samples
+            DashboardState.sortSamples(sortMethod);
+            
+            // Clear and repopulate
+            sampleSelect.empty();
+            DashboardState.samples.forEach(sample => {{
+                sampleSelect.append(`<option value="${{sample.Sample}}">${{sample.Sample}}</option>`);
+            }});
+            
+            // Restore selection or select first
+            if (currentValue && DashboardState.samples.some(s => s.Sample === currentValue)) {{
+                sampleSelect.val(currentValue);
+            }} else {{
+                sampleSelect.val(DashboardState.samples[0]?.Sample);
+            }}
+            
+            // Trigger change
+            sampleSelect.trigger('change');
+        }}
+        
+        // ==================== INITIALIZATION ====================
+        
+        $(document).ready(function() {{
+            // Initialize state
+            DashboardState.init();
+            DashboardState.subscribe(updateAll);
+            
+            // Populate sample dropdown
+            populateSampleDropdown('alpha');
+            
+            // Set up sample search
+            $('#sample-search').on('input', function() {{
+                const searchTerm = $(this).val().toLowerCase();
+                const sortMethod = $('#sort-order').val();
+                
+                const filteredSamples = sampleData
+                    .filter(s => s.Sample.toLowerCase().includes(searchTerm))
+                    .sort(Sorters[sortMethod]);
+                
+                const sampleSelect = $('#sample-select');
+                sampleSelect.empty();
+                
+                if (filteredSamples.length === 0) {{
+                    sampleSelect.append('<option value="">No matching samples</option>');
+                }} else {{
+                    filteredSamples.forEach(sample => {{
+                        sampleSelect.append(`<option value="${{sample.Sample}}">${{sample.Sample}}</option>`);
+                    }});
+                    sampleSelect.val(filteredSamples[0].Sample);
+                    sampleSelect.trigger('change');
+                }}
+            }});
+            
+            // Handle sort order changes
+            $('#sort-order').change(function() {{
+                const sortMethod = $(this).val();
+                const searchTerm = $('#sample-search').val().toLowerCase();
+                
+                if (searchTerm) {{
+                    $('#sample-search').trigger('input');
+                }} else {{
+                    populateSampleDropdown(sortMethod);
+                }}
+            }});
+            
+            // Handle sample selection
+            $('#sample-select').change(function() {{
+                DashboardState.setSample($(this).val());
+            }});
+            
+            // Handle min percentage changes
+            $('#apply-filters').click(function() {{
+                DashboardState.setMinPercentage(parseFloat($('#min-pct').val()) || 0);
+            }});
+            
+            $('#min-pct').keypress(function(e) {{
+                if (e.which === 13) {{
+                    $('#apply-filters').click();
+                }}
+            }});
+            
+            // Tab switching
+            $('.tab-button').click(function() {{
+                const tabId = $(this).data('tab');
+                $('.tab-button').removeClass('active');
+                $(this).addClass('active');
+                $('.tab-content').removeClass('active');
+                $(`#${{tabId}}`).addClass('active');
+                
+                // Force chart resize for better display
+                setTimeout(() => {{
+                    window.dispatchEvent(new Event('resize'));
+                }}, 100);
+            }});
+            
+            // Initialize comparison tab
+            renderAllDataTable();
+        }});
     </script>
 </body>
 </html>
     """
     
     # Save the HTML file
+    # Save the HTML file
     with open(output_file, 'w') as f:
         f.write(html_template)
-    
+
     print(f"Enhanced dashboard generated successfully: {output_file}")
+    print("  - Samples sorted alphanumerically")
+    print(f"  - Loaded {len(all_data)} sample(s)")
 
 def main():
     parser = argparse.ArgumentParser(
